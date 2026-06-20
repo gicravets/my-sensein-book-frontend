@@ -39,7 +39,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# VPT: raw CWA reference assets (GPLv3) kept local; only the journal is committed
-vpt/cwa-source/
-vpt/shots/
