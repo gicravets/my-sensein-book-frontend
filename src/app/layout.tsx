@@ -3,10 +3,10 @@ import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 
 export const metadata: Metadata = {
-  title: "MyReader Library",
-  description: "Веб-библиотека и читалка MyReader (PWA)",
-  applicationName: "MyReader",
-  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "MyReader" },
+  title: "My.Sensein.Book",
+  description: "Веб-библиотека и читалка My.Sensein.Book (PWA)",
+  applicationName: "My.Sensein.Book",
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "book" },
 };
 
 export const viewport: Viewport = {

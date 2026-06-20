@@ -41,7 +41,7 @@ export const books: Book[] = [
     shelfIds: ["sh-classics", "sh-now"],
     readProgress: {
       progression: 0.4, totalProgression: 0.07, page: 24, totalPages: 357,
-      completed: false, lastReadAt: "2026-06-19T21:10:00Z", deviceName: "MyReader iPhone",
+      completed: false, lastReadAt: "2026-06-19T21:10:00Z", deviceName: "My.Sensein.Book iPhone",
     },
   }),
   mkBook({
@@ -54,7 +54,7 @@ export const books: Book[] = [
     shelfIds: ["sh-classics", "sh-fav"],
     readProgress: {
       progression: 0.68, totalProgression: 0.84, page: 96, totalPages: 114,
-      completed: false, lastReadAt: "2026-06-19T20:30:00Z", deviceName: "MyReader iPhone",
+      completed: false, lastReadAt: "2026-06-19T20:30:00Z", deviceName: "My.Sensein.Book iPhone",
     },
   }),
   mkBook({
@@ -93,7 +93,7 @@ export const books: Book[] = [
     shelfIds: ["sh-classics"],
     readProgress: {
       progression: 0.12, totalProgression: 0.22, page: 130, totalPages: 600,
-      completed: false, lastReadAt: "2026-06-15T09:00:00Z", deviceName: "MyReader iPhone",
+      completed: false, lastReadAt: "2026-06-15T09:00:00Z", deviceName: "My.Sensein.Book iPhone",
     },
   }),
 ];

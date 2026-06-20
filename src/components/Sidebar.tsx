@@ -16,9 +16,9 @@ export function Sidebar() {
     <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-bg-elev px-3 py-5 sm:flex">
       <Link href="/" className="mb-6 flex items-center gap-2 px-2">
         <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-accent to-accent-2 text-sm font-bold">
-          M
+          B
         </span>
-        <span className="text-lg font-semibold tracking-tight">MyReader</span>
+        <span className="text-lg font-semibold tracking-tight">My.Sensein.Book</span>
       </Link>
       <nav className="flex flex-col gap-1">
         {NAV.map((n) => {
