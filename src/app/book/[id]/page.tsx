@@ -2,14 +2,16 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { Book, Bookmark, Highlight } from "@/lib/types";
 import { Cover } from "@/components/Cover";
-import { ProgressBar } from "@/components/ProgressBar";
 import { HighlightCard } from "@/components/HighlightCard";
+import { Icon } from "@/components/cwa/Icon";
 
 export default function BookPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const [book, setBook] = useState<Book | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
@@ -17,132 +19,137 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
 
   useEffect(() => {
     api.book(id).then(setBook).catch(() => setNotFound(true));
-    api.highlights(id).then((r) => setHighlights(r.content));
-    api.bookmarks(id).then((r) => setBookmarks(r.content));
+    api.highlights(id).then((r) => setHighlights(r.content)).catch(() => {});
+    api.bookmarks(id).then((r) => setBookmarks(r.content)).catch(() => {});
   }, [id]);
 
   if (notFound) return <Centered>Книга не найдена</Centered>;
   if (!book) return <Centered>Загрузка…</Centered>;
 
   const rp = book.readProgress;
-  return (
-    <div className="mx-auto max-w-4xl px-5 py-6">
-      <Link href="/" className="mb-5 inline-block text-sm text-text-dim hover:text-text">
-        ← Библиотека
-      </Link>
+  const sizeMb = book.size ? `${(book.size / 1_048_576).toFixed(0)} MiB` : "—";
 
-      <div className="flex flex-col gap-6 sm:flex-row">
-        <div className="w-40 shrink-0">
-          <div className="aspect-[2/3] overflow-hidden rounded-xl ring-1 ring-border">
+  const toggleRead = async () => {
+    const updated = await api.markRead(book.id, !rp?.completed);
+    setBook({ ...book, readProgress: updated });
+  };
+
+  return (
+    <div className="px-6 py-6">
+      <div className="mx-auto flex max-w-5xl flex-col gap-8 md:flex-row">
+        {/* cover */}
+        <div className="w-full max-w-[280px] shrink-0">
+          <div className="aspect-[2/3] overflow-hidden rounded-sm shadow-lg ring-1 ring-black/40">
             <Cover book={book} className="h-full w-full" />
           </div>
         </div>
 
+        {/* details */}
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{book.title}</h1>
-          <p className="mt-1 text-text-dim">{book.authors.join(", ")}</p>
-          {book.series && (
-            <p className="mt-1 text-sm text-text-dim">
-              Серия: {book.series} #{book.seriesIndex}
-            </p>
-          )}
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link
-              href={`/book/${book.id}/read`}
-              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-2"
-            >
-              {rp && rp.totalProgression > 0 ? "Продолжить чтение" : "Читать"}
-            </Link>
-            <button
-              onClick={async () => {
-                const next = !rp?.completed;
-                const updated = await api.markRead(book.id, next);
-                setBook({ ...book, readProgress: updated });
-              }}
-              className="rounded-lg border border-border bg-bg-elev px-4 py-2 text-sm hover:border-accent"
-            >
-              {rp?.completed ? "✓ Прочитана" : "Отметить прочитанной"}
+          {/* action icon row */}
+          <div className="mb-5 flex items-center gap-1">
+            <a href={api.bookFileUrl(book.id)} download>
+              <ActionIcon name="download" title="Скачать" />
+            </a>
+            <Link href={`/book/${book.id}/read`}><ActionIcon name="book" title="Читать" /></Link>
+            <button onClick={toggleRead}>
+              <ActionIcon name={rp?.completed ? "eye" : "eyeSlash"} title={rp?.completed ? "Прочитана" : "Отметить прочитанной"} active={rp?.completed} />
             </button>
+            <ActionIcon name="folder" title="На полку" />
+            <ActionIcon name="pencil" title="Редактировать" />
+            <ActionIcon name="trash" title="Удалить" />
           </div>
 
-          {rp && (
-            <div className="mt-4 max-w-sm">
-              <div className="mb-1 flex justify-between text-xs text-text-dim">
-                <span>{Math.round(rp.totalProgression * 100)}%</span>
-                <span>стр. {rp.page} / {rp.totalPages}</span>
-              </div>
-              <ProgressBar value={rp.totalProgression} />
-              {rp.lastReadAt && (
-                <p className="mt-1 text-[11px] text-text-dim">
-                  Последнее чтение: {new Date(rp.lastReadAt).toLocaleString("ru")} · {rp.deviceName}
-                </p>
-              )}
+          <h1 className="text-[2rem] font-bold leading-tight text-cb-text">{book.title}</h1>
+          <p className="mt-1 text-cb-muted">{book.authors.join(", ")}</p>
+
+          {/* rating */}
+          <div className="mt-3 flex gap-1 text-cb-muted">
+            {Array.from({ length: 5 }).map((_, i) => <Icon key={i} name="star" size={18} />)}
+          </div>
+
+          {/* read / continue */}
+          <div className="mt-4">
+            <Link
+              href={`/book/${book.id}/read`}
+              className="inline-block rounded-[40px] bg-cb-accent px-7 py-2 text-sm font-semibold uppercase text-white hover:bg-cb-accent-hover"
+            >
+              {rp && rp.totalProgression > 0 ? "Продолжить" : "Читать"}
+            </Link>
+            {rp && rp.totalProgression > 0 && (
+              <span className="ml-3 text-sm text-cb-muted">{Math.round(rp.totalProgression * 100)}%</span>
+            )}
+          </div>
+
+          {/* meta pill cards */}
+          <div className="mt-5 flex flex-wrap gap-2">
+            <MetaCard label="ID" value={book.id} />
+            <MetaCard label="Добавлена" value={new Date(book.addedAt).toLocaleDateString("ru")} />
+            <MetaCard label="Формат" value={`${book.format} (${sizeMb})`} />
+            {book.language && <MetaCard label="Язык" value={book.language} />}
+            {book.publisher && <MetaCard label="Издатель" value={book.publisher} />}
+            {book.isbn && <MetaCard label="ISBN" value={book.isbn} />}
+            {rp?.deviceName && <MetaCard label="Устройство" value={rp.deviceName} />}
+          </div>
+
+          {/* tags */}
+          {book.tags.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="text-cb-muted"><Icon name="tag" size={16} /></span>
+              {book.tags.map((t) => (
+                <span key={t} className="rounded-[40px] bg-cb-panel px-3 py-1 text-xs text-cb-text/90 ring-1 ring-cb-border">{t}</span>
+              ))}
             </div>
           )}
 
           {book.description && (
-            <p className="mt-4 text-sm leading-relaxed text-text/90">{book.description}</p>
-          )}
-
-          <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm sm:grid-cols-3">
-            <Meta k="Формат" v={book.format} />
-            <Meta k="Язык" v={book.language ?? "—"} />
-            <Meta k="Размер" v={`${(book.size / 1_048_576).toFixed(1)} МБ`} />
-            {book.publisher && <Meta k="Издатель" v={book.publisher} />}
-            {book.isbn && <Meta k="ISBN" v={book.isbn} />}
-            <Meta k="Добавлена" v={new Date(book.addedAt).toLocaleDateString("ru")} />
-          </dl>
-
-          {book.tags.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {book.tags.map((t) => (
-                <span key={t} className="rounded-full bg-bg-elev2 px-2.5 py-1 text-xs text-text-dim">
-                  #{t}
-                </span>
-              ))}
-            </div>
+            <p className="mt-5 max-w-2xl text-sm leading-relaxed text-cb-text/85">{book.description}</p>
           )}
         </div>
       </div>
 
-      <Section title={`Закладки (${bookmarks.length})`}>
-        {bookmarks.length === 0 ? (
-          <Empty>Закладок нет</Empty>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {bookmarks.map((b) => (
-              <li key={b.id} className="rounded-lg border border-border bg-bg-elev px-4 py-3">
-                <div className="flex items-center justify-between gap-3">
+      {/* bookmarks + highlights */}
+      <div className="mx-auto mt-10 max-w-5xl">
+        <Section title={`Закладки (${bookmarks.length})`}>
+          {bookmarks.length === 0 ? <Empty>Закладок нет</Empty> : (
+            <ul className="flex flex-col gap-2">
+              {bookmarks.map((b) => (
+                <li key={b.id} className="flex items-center justify-between rounded bg-cb-panel px-4 py-3 ring-1 ring-cb-border">
                   <span className="text-sm">{b.label}</span>
-                  <span className="shrink-0 text-xs text-text-dim">
-                    {Math.round(b.locator.progression * 100)}%
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
-
-      <Section title={`Выделения и заметки (${highlights.length})`}>
-        {highlights.length === 0 ? (
-          <Empty>Выделений нет</Empty>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {highlights.map((h) => <HighlightCard key={h.id} h={h} />)}
-          </div>
-        )}
-      </Section>
+                  <span className="text-xs text-cb-muted">{Math.round(b.locator.progression * 100)}%</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+        <Section title={`Выделения и заметки (${highlights.length})`}>
+          {highlights.length === 0 ? <Empty>Выделений нет</Empty> : (
+            <div className="flex flex-col gap-3">{highlights.map((h) => <HighlightCard key={h.id} h={h} />)}</div>
+          )}
+        </Section>
+      </div>
     </div>
   );
 }
 
-function Meta({ k, v }: { k: string; v: string }) {
+function ActionIcon({ name, title, active }: { name: string; title: string; active?: boolean }) {
   return (
-    <div>
-      <dt className="text-text-dim">{k}</dt>
-      <dd>{v}</dd>
+    <span
+      title={title}
+      className={`grid h-10 w-10 place-items-center rounded transition-colors ${
+        active ? "text-cb-accent" : "text-cb-text/80 hover:bg-white/10 hover:text-white"
+      }`}
+    >
+      <Icon name={name} size={20} />
+    </span>
+  );
+}
+
+function MetaCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-2 rounded-[40px] bg-cb-panel px-4 py-2 ring-1 ring-cb-border">
+      <span className="text-xs uppercase text-cb-muted">{label}</span>
+      <span className="text-sm text-cb-text">{value}</span>
     </div>
   );
 }
@@ -155,11 +162,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     </section>
   );
 }
-
 function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-text-dim">{children}</p>;
+  return <p className="rounded border border-dashed border-cb-border px-4 py-6 text-center text-sm text-cb-muted">{children}</p>;
 }
-
 function Centered({ children }: { children: React.ReactNode }) {
-  return <div className="grid h-[60vh] place-items-center text-text-dim">{children}</div>;
+  return <div className="grid h-[60vh] place-items-center text-cb-muted">{children}</div>;
 }

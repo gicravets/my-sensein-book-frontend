@@ -32,6 +32,7 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
   const [sel, setSel] = useState<SelInfo | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [author, setAuthor] = useState("");
 
   const flash = (m: string) => { setSaved(m); setTimeout(() => setSaved(null), 1500); };
 
@@ -43,7 +44,7 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
     (async () => {
      try {
       const ePub = (await import("epubjs")).default;
-      api.book(id).then((b) => setTitle(b.title)).catch(() => {});
+      api.book(id).then((b) => { setTitle(b.title); setAuthor(b.authors.join(", ")); }).catch(() => {});
       try { existing = (await api.highlights(id)).content; } catch {}
 
       if (disposed || !viewerRef.current) return;
@@ -59,19 +60,20 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
       });
       rendRef.current = rendition;
 
-      rendition.themes.register("dark", {
+      // Light theme — matches CWA's epub reader (white page, dark text)
+      rendition.themes.register("light", {
         "html, body": {
-          background: "#0b0b0f !important",
-          color: "#d7d7de !important",
+          background: "#ffffff !important",
+          color: "#222 !important",
           "line-height": "1.6",
           padding: "0 8px",
         },
         "p, div, span, li, td, th, blockquote, h1, h2, h3, h4, h5, h6, em, strong, b, i":
-          { color: "#d7d7de !important" },
+          { color: "#222 !important" },
         p: { "font-size": "1.05rem" },
-        a: { color: "#a855f7 !important" },
+        a: { color: "#cc7b19 !important" },
       });
-      rendition.themes.select("dark");
+      rendition.themes.select("light");
 
       await rendition.display();
       book.loaded.navigation.then((nav: any) =>
@@ -170,29 +172,29 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-bg" onClick={() => sel && setSel(null)}>
-      {/* top bar */}
-      <header className="flex items-center gap-3 border-b border-border px-4 py-2.5">
-        <Link href={`/book/${id}`} className="text-sm text-text-dim hover:text-text">←</Link>
-        <span className="truncate text-sm font-medium">{title}</span>
-        <div className="ml-auto flex items-center gap-2">
-          <span className="text-xs text-text-dim tabular-nums">{Math.round(percent * 100)}%</span>
-          <IconBtn onClick={addBookmark} title="Закладка">🔖</IconBtn>
-          <IconBtn onClick={() => setShowToc((v) => !v)} title="Оглавление">☰</IconBtn>
+    <div className="fixed inset-0 flex flex-col bg-white text-[#222]" onClick={() => sel && setSel(null)}>
+      {/* top bar (CWA light reader) */}
+      <header className="flex items-center gap-3 px-4 py-2.5">
+        <IconBtn onClick={() => setShowToc((v) => !v)} title="Оглавление">☰</IconBtn>
+        <div className="flex-1 truncate text-center text-sm text-[#555]">
+          <span className="font-semibold text-[#333]">{title}</span>
+          {author && <span className="text-[#999]"> — {author}</span>}
         </div>
+        <IconBtn onClick={addBookmark} title="Закладка">🔖</IconBtn>
+        <Link href={`/book/${id}`} title="К книге" className="grid h-8 w-8 place-items-center rounded text-[#777] hover:bg-black/5 hover:text-[#333]">✕</Link>
       </header>
 
       <div className="relative flex flex-1 overflow-hidden">
-        {/* TOC drawer */}
+        {/* TOC drawer (light) */}
         {showToc && (
-          <aside className="w-72 shrink-0 overflow-y-auto border-r border-border bg-bg-elev p-3">
-            <div className="mb-2 px-2 text-xs uppercase tracking-wide text-text-dim">Оглавление</div>
+          <aside className="w-72 shrink-0 overflow-y-auto border-r border-black/10 bg-[#fafafa] p-3">
+            <div className="mb-2 px-2 text-xs uppercase tracking-wide text-[#999]">Оглавление</div>
             <ul className="flex flex-col">
               {toc.map((t, i) => (
                 <li key={i}>
                   <button
                     onClick={() => { rendRef.current?.display(t.href); setShowToc(false); }}
-                    className="w-full truncate rounded px-2 py-1.5 text-left text-sm text-text-dim hover:bg-bg-elev2 hover:text-text"
+                    className="w-full truncate rounded px-2 py-1.5 text-left text-sm text-[#555] hover:bg-black/5 hover:text-[#111]"
                   >
                     {t.label || "—"}
                   </button>
@@ -202,35 +204,34 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
           </aside>
         )}
 
-        {/* viewer + click zones */}
+        {/* viewer + chevron nav (CWA style) */}
         <div className="relative flex-1">
           <div ref={viewerRef} className="h-full w-full" />
           {!ready && !err && (
-            <div className="pointer-events-none absolute inset-0 grid place-items-center text-text-dim">
+            <div className="pointer-events-none absolute inset-0 grid place-items-center text-[#999]">
               Загрузка книги…
             </div>
           )}
           {err && (
-            <div className="absolute inset-0 grid place-items-center p-6 text-center text-sm text-red-400">
+            <div className="absolute inset-0 grid place-items-center p-6 text-center text-sm text-red-500">
               Ошибка чтения: {err}
             </div>
           )}
           <button
             aria-label="prev"
             onClick={() => rendRef.current?.prev()}
-            className="absolute left-0 top-0 h-full w-16 cursor-w-resize opacity-0"
-          />
+            className="absolute left-0 top-0 grid h-full w-14 place-items-center text-3xl text-black/20 hover:text-black/40"
+          >‹</button>
           <button
             aria-label="next"
             onClick={() => rendRef.current?.next()}
-            className="absolute right-0 top-0 h-full w-16 cursor-e-resize opacity-0"
-          />
+            className="absolute right-0 top-0 grid h-full w-14 place-items-center text-3xl text-black/20 hover:text-black/40"
+          >›</button>
+          {/* progress % bottom-right */}
+          <div className="pointer-events-none absolute bottom-3 right-5 text-sm font-medium text-[#333]">
+            {Math.round(percent * 100)}%
+          </div>
         </div>
-      </div>
-
-      {/* bottom progress */}
-      <div className="h-1 w-full bg-bg-elev2">
-        <div className="h-full bg-accent" style={{ width: `${percent * 100}%` }} />
       </div>
 
       {/* selection popup */}
@@ -269,7 +270,7 @@ function IconBtn({ onClick, title, children }: { onClick: () => void; title: str
     <button
       onClick={onClick}
       title={title}
-      className="grid h-8 w-8 place-items-center rounded-lg border border-border bg-bg-elev text-sm hover:border-accent"
+      className="grid h-8 w-8 place-items-center rounded text-sm text-[#777] hover:bg-black/5 hover:text-[#333]"
     >
       {children}
     </button>
