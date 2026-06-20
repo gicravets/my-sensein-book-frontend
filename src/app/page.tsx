@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { api, type BookQuery } from "@/lib/api";
 import type { Book } from "@/lib/types";
@@ -17,15 +17,18 @@ function Library() {
   const [books, setBooks] = useState<Book[] | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     setBooks(null);
     api.books({ search, sort, shelf })
       .then((r) => {
+        if (cancelled) return;
         let list = r.content;
         if (filter === "read") list = list.filter((b) => b.readProgress?.completed);
         if (filter === "unread") list = list.filter((b) => !b.readProgress?.completed);
         setBooks(list);
       })
       .catch((e) => console.error("[lib] books fetch failed:", e));
+    return () => { cancelled = true; };
   }, [search, sort, shelf, filter]);
 
   const heading = search
@@ -63,9 +66,5 @@ function Grid({ children }: { children: React.ReactNode }) {
 }
 
 export default function Page() {
-  return (
-    <Suspense fallback={<div className="px-6 py-4 text-cb-muted">Загрузка…</div>}>
-      <Library />
-    </Suspense>
-  );
+  return <Library />;
 }
