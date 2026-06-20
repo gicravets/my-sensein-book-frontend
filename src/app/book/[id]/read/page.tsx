@@ -172,7 +172,7 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white text-[#222]" onClick={() => sel && setSel(null)}>
+    <div className="fixed inset-0 z-50 flex flex-col bg-white text-[#222]" onClick={() => sel && setSel(null)}>
       {/* top bar (CWA light reader) */}
       <header className="flex items-center gap-3 px-4 py-2.5">
         <IconBtn onClick={() => setShowToc((v) => !v)} title="Оглавление">☰</IconBtn>

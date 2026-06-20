@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import "./globals.css";
-import { TopBar } from "@/components/cwa/TopBar";
-import { SideNav } from "@/components/cwa/SideNav";
+import { AppChrome } from "@/components/cwa/AppChrome";
 
 export const metadata: Metadata = {
   title: "My.Sensein.Book",
@@ -23,14 +22,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ru">
       <body className="min-h-screen">
         <Suspense fallback={<div className="h-[52px] bg-cb-topbar" />}>
-          <TopBar />
+          <AppChrome>{children}</AppChrome>
         </Suspense>
-        <div className="flex">
-          <Suspense fallback={<div className="hidden w-64 sm:block" />}>
-            <SideNav />
-          </Suspense>
-          <main className="min-h-[calc(100vh-52px)] min-w-0 flex-1">{children}</main>
-        </div>
       </body>
     </html>
   );
