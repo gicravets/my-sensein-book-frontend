@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { books } from "@/lib/mock-data";
+import { books as mockBooks } from "@/lib/mock-data";
+import { cwaEnabled, cwaListBooks } from "@/lib/cwa";
 import type { Book, Page } from "@/lib/types";
 
 // GET /api/v1/books?search=&shelf=&sort=&page=&size=
+// Source = CWA backend when CWA_BASE is set, else the local mock seed.
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
   const search = (sp.get("search") ?? "").trim().toLowerCase();
@@ -11,7 +13,7 @@ export async function GET(req: NextRequest) {
   const page = Number(sp.get("page") ?? 0);
   const size = Number(sp.get("size") ?? 50);
 
-  let list: Book[] = [...books];
+  let list: Book[] = cwaEnabled() ? await cwaListBooks() : [...mockBooks];
 
   if (search) {
     list = list.filter(
