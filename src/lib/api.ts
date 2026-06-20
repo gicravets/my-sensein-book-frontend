@@ -23,7 +23,7 @@ async function send<T>(method: string, path: string, body?: unknown): Promise<T 
 
 export type SortKey =
   | "recent" | "recent_old" | "title" | "title_desc"
-  | "author" | "author_desc" | "pub" | "pub_desc" | "progress";
+  | "author" | "author_desc" | "pub" | "pub_desc" | "progress" | "random";
 
 export interface BookQuery {
   search?: string;
@@ -31,6 +31,9 @@ export interface BookQuery {
   tag?: string;
   author?: string;
   series?: string;
+  language?: string;
+  publisher?: string;
+  format?: string;
   sort?: SortKey;
   page?: number;
   size?: number;
@@ -44,6 +47,9 @@ export const api = {
     if (q.tag) sp.set("tag", q.tag);
     if (q.author) sp.set("author", q.author);
     if (q.series) sp.set("series", q.series);
+    if (q.language) sp.set("language", q.language);
+    if (q.publisher) sp.set("publisher", q.publisher);
+    if (q.format) sp.set("format", q.format);
     if (q.sort) sp.set("sort", q.sort);
     if (q.page != null) sp.set("page", String(q.page));
     if (q.size != null) sp.set("size", String(q.size));
