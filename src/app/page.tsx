@@ -11,6 +11,9 @@ function Library() {
   const sp = useSearchParams();
   const search = sp.get("search") ?? "";
   const shelf = sp.get("shelf") ?? undefined;
+  const tag = sp.get("tag") ?? undefined;
+  const author = sp.get("author") ?? undefined;
+  const series = sp.get("series") ?? undefined;
   const sort = (sp.get("sort") ?? "recent") as BookQuery["sort"];
   const filter = sp.get("filter"); // read | unread
 
@@ -20,7 +23,7 @@ function Library() {
   useEffect(() => {
     let cancelled = false;
     setBooks(null);
-    api.books({ search, sort, shelf })
+    api.books({ search, sort, shelf, tag, author, series })
       .then((r) => {
         if (cancelled) return;
         let list = r.content;
@@ -30,7 +33,7 @@ function Library() {
       })
       .catch((e) => console.error("[lib] books fetch failed:", e));
     return () => { cancelled = true; };
-  }, [search, sort, shelf, filter]);
+  }, [search, sort, shelf, tag, author, series, filter]);
 
   useEffect(() => {
     if (!shelf) { setShelfName(null); return; }
@@ -38,15 +41,18 @@ function Library() {
   }, [shelf]);
 
   const count = books?.length ?? 0;
+  const facet = tag ?? author ?? series;
   const heading = search
     ? `${count} Results for: ${search}`
-    : shelf
-      ? `${shelfName ?? "Полка"} (${count})`
-      : filter === "read"
-        ? `Read Books (${count})`
-        : filter === "unread"
-          ? `Unread Books (${count})`
-          : `Books (${count})`;
+    : facet
+      ? `${facet} (${count})`
+      : shelf
+        ? `${shelfName ?? "Полка"} (${count})`
+        : filter === "read"
+          ? `Read Books (${count})`
+          : filter === "unread"
+            ? `Unread Books (${count})`
+            : `Books (${count})`;
 
   return (
     <div className="px-6 py-4">

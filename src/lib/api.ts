@@ -28,6 +28,9 @@ export type SortKey =
 export interface BookQuery {
   search?: string;
   shelf?: string;
+  tag?: string;
+  author?: string;
+  series?: string;
   sort?: SortKey;
   page?: number;
   size?: number;
@@ -38,6 +41,9 @@ export const api = {
     const sp = new URLSearchParams();
     if (q.search) sp.set("search", q.search);
     if (q.shelf) sp.set("shelf", q.shelf);
+    if (q.tag) sp.set("tag", q.tag);
+    if (q.author) sp.set("author", q.author);
+    if (q.series) sp.set("series", q.series);
     if (q.sort) sp.set("sort", q.sort);
     if (q.page != null) sp.set("page", String(q.page));
     if (q.size != null) sp.set("size", String(q.size));

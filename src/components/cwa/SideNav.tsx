@@ -15,7 +15,7 @@ const BROWSE: { icon: string; label: string; href: string }[] = [
   { icon: "eye", label: "Read Books", href: "/?filter=read" },
   { icon: "eyeSlash", label: "Unread Books", href: "/?filter=unread" },
   { icon: "shuffle", label: "Discover", href: "#" },
-  { icon: "tag", label: "Categories", href: "#" },
+  { icon: "tag", label: "Categories", href: "/categories" },
   { icon: "bookmark", label: "Series", href: "#" },
   { icon: "user", label: "Authors", href: "#" },
   { icon: "text", label: "Publishers", href: "#" },
