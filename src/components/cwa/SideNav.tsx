@@ -26,7 +26,7 @@ const BROWSE: { icon: string; label: string; href: string }[] = [
   { icon: "list", label: "Books List", href: "#" },
 ];
 
-export function SideNav() {
+export function SideNav({ open, onClose }: { open: boolean; onClose: () => void }) {
   const path = usePathname();
   const router = useRouter();
   const sp = useSearchParams();
@@ -48,7 +48,16 @@ export function SideNav() {
   const smart = shelves.filter((s) => s.kind === "smart");
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col overflow-y-auto bg-cb-sidebar/95 sm:flex">
+    <>
+      {/* mobile backdrop */}
+      {open && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={onClose} />}
+
+      <aside
+        onClick={onClose}
+        className={`fixed bottom-0 left-0 top-[52px] z-40 flex w-64 shrink-0 flex-col overflow-y-auto bg-cb-sidebar transition-transform lg:static lg:top-0 lg:z-auto lg:translate-x-0 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        } lg:flex`}
+      >
       <Link href="/" className="block px-5 pb-4 pt-4 text-[17px] font-bold text-cb-gold">
         My.Sensein.Book
       </Link>
@@ -97,7 +106,8 @@ export function SideNav() {
         </Section>
       )}
       <div className="h-6" />
-    </aside>
+      </aside>
+    </>
   );
 }
 

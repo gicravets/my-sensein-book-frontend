@@ -144,6 +144,18 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
     return () => window.removeEventListener("keyup", h);
   }, [onKey]);
 
+  // reflow the rendition when the viewport changes (resize / orientation)
+  useEffect(() => {
+    let t: ReturnType<typeof setTimeout>;
+    const onResize = () => {
+      clearTimeout(t);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      t = setTimeout(() => { try { (rendRef.current as any)?.resize(); } catch {} }, 200);
+    };
+    window.addEventListener("resize", onResize);
+    return () => { clearTimeout(t); window.removeEventListener("resize", onResize); };
+  }, []);
+
   const addHighlight = async (color: HighlightColor) => {
     if (!sel) return;
     const hex = COLORS.find((c) => c.key === color)!.hex;
