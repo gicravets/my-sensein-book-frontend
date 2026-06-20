@@ -1,17 +1,47 @@
 @import "tailwindcss";
 
+/* caliBlur theme (Verbatim Parity Transcription of Calibre-Web-Automated).
+   Tokens captured in doc-vpt/journals/vpt-journal.json. */
 :root {
-  --bg: #0b0b0f;
-  --bg-elev: #15151c;
-  --bg-elev2: #1d1d27;
-  --border: #2a2a36;
-  --text: #ececf1;
-  --text-dim: #9a9aa8;
-  --accent: #a855f7;
-  --accent-2: #7c3aed;
+  --cb-bg: #2b3138;          /* page (dark slate, blur backdrop) */
+  --cb-bg2: #3a424b;
+  --cb-topbar: #1c2024;      /* top bar */
+  --cb-sidebar: #1f242a;     /* left sidebar */
+  --cb-panel: #2f363d;       /* cards / toolbars */
+  --cb-panel2: #394149;
+  --cb-border: #3c454e;
+  --cb-text: #f5f5f5;
+  --cb-muted: #9aa0a6;
+  --cb-accent: #cc7b19;      /* orange primary */
+  --cb-accent-hover: #e0902c;
+  --cb-gold: #f9be03;        /* labels / brand */
+
+  /* legacy tokens — kept until detail/reader/shelves/highlights/bookmarks are
+     migrated to caliBlur (mapped onto the caliBlur palette) */
+  --bg: #2b3138;
+  --bg-elev: #2f363d;
+  --bg-elev2: #394149;
+  --border: #3c454e;
+  --text: #f5f5f5;
+  --text-dim: #9aa0a6;
+  --accent: #cc7b19;
+  --accent-2: #e0902c;
 }
 
 @theme inline {
+  --color-cb-bg: var(--cb-bg);
+  --color-cb-bg2: var(--cb-bg2);
+  --color-cb-topbar: var(--cb-topbar);
+  --color-cb-sidebar: var(--cb-sidebar);
+  --color-cb-panel: var(--cb-panel);
+  --color-cb-panel2: var(--cb-panel2);
+  --color-cb-border: var(--cb-border);
+  --color-cb-text: var(--cb-text);
+  --color-cb-muted: var(--cb-muted);
+  --color-cb-accent: var(--cb-accent);
+  --color-cb-accent-hover: var(--cb-accent-hover);
+  --color-cb-gold: var(--cb-gold);
+
   --color-bg: var(--bg);
   --color-bg-elev: var(--bg-elev);
   --color-bg-elev2: var(--bg-elev2);
@@ -23,10 +53,17 @@
 }
 
 html, body {
-  background: var(--bg);
-  color: var(--text);
+  background:
+    radial-gradient(1200px 600px at 70% -10%, #3a444e 0%, transparent 60%),
+    linear-gradient(160deg, #313a42 0%, #262d34 60%, #20262c 100%);
+  background-attachment: fixed;
+  color: var(--cb-text);
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 14px;
   -webkit-font-smoothing: antialiased;
 }
 
-* { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+* { scrollbar-width: thin; scrollbar-color: var(--cb-border) transparent; }
+
+/* caliBlur uppercase label style */
+.cb-label { color: var(--cb-gold); text-transform: uppercase; font-size: 13px; letter-spacing: .02em; }
