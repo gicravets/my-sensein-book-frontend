@@ -1,14 +1,33 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Icon } from "./Icon";
+import { api } from "@/lib/api";
 
 export function TopBar() {
   const router = useRouter();
   const sp = useSearchParams();
   const [q, setQ] = useState(sp.get("search") ?? "");
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploading(true);
+    try {
+      await api.uploadBook(file);
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      alert("Не удалось загрузить книгу: " + (err as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => setQ(sp.get("search") ?? ""), [sp]);
 
@@ -39,6 +58,14 @@ export function TopBar() {
       </Link>
 
       <div className="ml-auto flex items-center gap-1">
+        <input ref={fileRef} type="file" accept=".epub,application/epub+zip" hidden onChange={onUpload} />
+        <button
+          onClick={() => fileRef.current?.click()}
+          title="Загрузить книгу (EPUB)"
+          className={`grid h-9 w-9 place-items-center rounded hover:bg-white/10 hover:text-white ${uploading ? "animate-pulse text-cb-accent" : "text-cb-text/80"}`}
+        >
+          <Icon name="upload" size={18} />
+        </button>
         <IconBtn name="devices" title="Отправить на устройство" />
         <IconBtn name="activity" title="Задачи" />
         <IconBtn name="sync" title="Синхронизация" />

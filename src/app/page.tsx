@@ -18,12 +18,14 @@ function Library() {
 
   useEffect(() => {
     setBooks(null);
-    api.books({ search, sort, shelf }).then((r) => {
-      let list = r.content;
-      if (filter === "read") list = list.filter((b) => b.readProgress?.completed);
-      if (filter === "unread") list = list.filter((b) => !b.readProgress?.completed);
-      setBooks(list);
-    });
+    api.books({ search, sort, shelf })
+      .then((r) => {
+        let list = r.content;
+        if (filter === "read") list = list.filter((b) => b.readProgress?.completed);
+        if (filter === "unread") list = list.filter((b) => !b.readProgress?.completed);
+        setBooks(list);
+      })
+      .catch((e) => console.error("[lib] books fetch failed:", e));
   }, [search, sort, shelf, filter]);
 
   const heading = search

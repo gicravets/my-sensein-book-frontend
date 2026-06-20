@@ -54,6 +54,15 @@ export const api = {
   // file URL for the reader (epub.js loads this directly)
   bookFileUrl: (id: string) => `${BASE}/api/v1/books/${id}/file`,
 
+  // upload an EPUB (multipart) — backend parses metadata + cover
+  uploadBook: async (file: File) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch(`${BASE}/api/v1/books`, { method: "POST", body: fd });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return res.json();
+  },
+
   // writes
   putProgression: (id: string, p: Partial<ReadProgress>) =>
     send<ReadProgress>("PUT", `/api/v1/books/${id}/progression`, p),
