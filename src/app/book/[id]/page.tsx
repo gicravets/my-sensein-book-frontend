@@ -2,26 +2,35 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import type { Book, Bookmark, Highlight } from "@/lib/types";
+import type { Book, Bookmark, Highlight, Shelf } from "@/lib/types";
 import { Cover } from "@/components/Cover";
 import { HighlightCard } from "@/components/HighlightCard";
 import { Icon } from "@/components/cwa/Icon";
 
 export default function BookPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const router = useRouter();
   const [book, setBook] = useState<Book | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [shelves, setShelves] = useState<Shelf[]>([]);
+  const [showShelf, setShowShelf] = useState(false);
 
   useEffect(() => {
     api.book(id).then(setBook).catch(() => setNotFound(true));
     api.highlights(id).then((r) => setHighlights(r.content)).catch(() => {});
     api.bookmarks(id).then((r) => setBookmarks(r.content)).catch(() => {});
+    api.shelves().then((r) => setShelves(r.content)).catch(() => {});
   }, [id]);
+
+  const toggleShelf = async (shelfId: string, on: boolean) => {
+    if (!book) return;
+    const updated = on
+      ? await api.addToShelf(shelfId, book.id)
+      : await api.removeFromShelf(shelfId, book.id);
+    if (updated) setBook(updated);
+  };
 
   if (notFound) return <Centered>Книга не найдена</Centered>;
   if (!book) return <Centered>Загрузка…</Centered>;
@@ -55,7 +64,32 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
             <button onClick={toggleRead}>
               <ActionIcon name={rp?.completed ? "eye" : "eyeSlash"} title={rp?.completed ? "Прочитана" : "Отметить прочитанной"} active={rp?.completed} />
             </button>
-            <ActionIcon name="folder" title="На полку" />
+            <div className="relative">
+              <button onClick={() => setShowShelf((v) => !v)}>
+                <ActionIcon name="folder" title="На полку" active={showShelf} />
+              </button>
+              {showShelf && (
+                <div className="absolute left-0 top-11 z-20 w-60 rounded-lg border border-cb-border bg-cb-panel p-2 shadow-xl">
+                  <div className="px-2 pb-1 text-xs uppercase text-cb-muted">Полки</div>
+                  {shelves.length === 0 && <div className="px-2 py-1 text-sm text-cb-muted">Нет полок</div>}
+                  {shelves.map((s) => {
+                    const on = book.shelfIds.includes(s.id);
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => toggleShelf(s.id, !on)}
+                        className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-white/5"
+                      >
+                        <span className={`grid h-4 w-4 place-items-center rounded-sm border ${on ? "border-cb-accent bg-cb-accent text-white" : "border-cb-border"}`}>
+                          {on ? "✓" : ""}
+                        </span>
+                        <span className="truncate">{s.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
             <ActionIcon name="pencil" title="Редактировать" />
             <ActionIcon name="trash" title="Удалить" />
           </div>

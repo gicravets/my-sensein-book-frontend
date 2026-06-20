@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { Shelf } from "@/lib/types";
@@ -28,12 +28,20 @@ const BROWSE: { icon: string; label: string; href: string }[] = [
 
 export function SideNav() {
   const path = usePathname();
+  const router = useRouter();
   const sp = useSearchParams();
   const [shelves, setShelves] = useState<Shelf[]>([]);
 
-  useEffect(() => {
-    api.shelves().then((r) => setShelves(r.content)).catch(() => {});
-  }, []);
+  const loadShelves = () => api.shelves().then((r) => setShelves(r.content)).catch(() => {});
+  useEffect(() => { loadShelves(); }, []);
+
+  const createShelf = async () => {
+    const name = window.prompt("Название полки");
+    if (!name?.trim()) return;
+    await api.createShelf(name.trim()).catch(() => {});
+    await loadShelves();
+    router.refresh();
+  };
 
   const activeShelf = sp.get("shelf");
   const normal = shelves.filter((s) => s.kind === "normal");
@@ -64,7 +72,13 @@ export function SideNav() {
             active={activeShelf === s.id}
           />
         ))}
-        <NavItem icon="plus" label="Create Shelf" href="#" />
+        <button
+          onClick={createShelf}
+          className="flex w-full items-center gap-3 px-5 py-[7px] text-left text-[14px] text-cb-text/85 transition-colors hover:bg-white/5 hover:text-white"
+        >
+          <span className="text-cb-muted/90"><Icon name="plus" size={16} /></span>
+          <span className="flex-1 truncate">Create Shelf</span>
+        </button>
       </Section>
 
       {smart.length > 0 && (
