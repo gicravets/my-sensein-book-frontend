@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "method": "VPT — Verbatim Parity Transcription",
+    "goal": "Pixel-perfect 1:1 clone of the Calibre-Web-Automated UI for My.Sensein.Book frontend",
+    "source": { "app": "Calibre-Web-Automated", "instance": "http://localhost:8083", "theme": "caliBlur (dark)" },
+    "backend": "own Go backend (my-sensein-book-backend), API shape referenced from Komga",
+    "capturedAt": "2026-06-20",
+    "license_note": "CWA is GPLv3; vpt/cwa-source/* are verbatim reference assets. For a public clone, re-implement from this journal rather than shipping CWA's CSS/markup verbatim.",
+    "referenceAssets": {
+      "css": ["vpt/cwa-source/css/style.css", "vpt/cwa-source/css/caliBlur.css", "vpt/cwa-source/css/caliBlur_override.css", "vpt/cwa-source/css/cwa.css"],
+      "templates": ["vpt/cwa-source/templates/{layout,login,index,read,shelf,search,author}.html"],
+      "stylesheets_loaded_order": ["libs/bootstrap.min.css", "style.css", "upload.css", "caliBlur.css", "caliBlur_override.css", "cwa.css"]
+    }
+  },
+  "designTokens": {
+    "theme": "caliBlur",
+    "color": {
+      "bodyBg": "rgb(71,71,71)",
+      "bodyBgImage": "/static/css/images/caliblur/blur-*.png (textured)",
+      "text": "rgb(245,245,245)",
+      "accent": "#cc7b19",
+      "accentText": "#ffffff",
+      "label": "#f9be03",
+      "inputBg": "rgba(255,255,255,0.25)",
+      "inputText": "#eeeeee"
+    },
+    "radius": { "input": "4px", "button": "40px (pill)" },
+    "typography": { "base": "13px", "labelCaps": true, "buttonCaps": true },
+    "fonts": "Bootstrap default stack (see style.css)"
+  },
+  "screens": [
+    {
+      "id": "login",
+      "url": "/login",
+      "title": "Calibre-Web Automated | Вход",
+      "bodyClass": "login blur",
+      "template": "vpt/cwa-source/templates/login.html",
+      "screenshot": "vpt/shots/login.png",
+      "data": { "submit": "POST /login (x-www-form-urlencoded) fields: username, password, csrf_token, remember_me; CSRF token from the GET /login page" },
+      "layout": "Full-screen textured-blur background; centered brand title; centered narrow form panel (darker), left-aligned gold caps labels above dark inputs; pill orange submit. Home icon top-left.",
+      "components": [
+        { "name": "homeIcon", "position": "top-left", "icon": "house glyph" },
+        { "name": "brandTitle", "text": "Calibre-Web Automated", "note": "REPLACE verbatim text with 'My.Sensein.Book'", "styles": { "align": "center", "color": "#cfcfcf-ish", "weight": "600" } },
+        { "name": "label.username", "text": "ИМЯ ПОЛЬЗОВАТЕЛЯ", "styles": { "color": "#f9be03", "fontSize": "13px", "textTransform": "uppercase" } },
+        { "name": "input.username", "styles": { "bg": "rgba(255,255,255,0.25)", "color": "#eee", "radius": "4px", "height": "36px", "padding": "6px 12px", "fontSize": "13px" } },
+        { "name": "label.password", "text": "ПАРОЛЬ", "styles": "same as username label" },
+        { "name": "input.password", "styles": "same as username input" },
+        { "name": "checkbox.showPassword", "text": "Show Password" },
+        { "name": "checkbox.rememberMe", "text": "Запомнить меня", "default": "checked" },
+        { "name": "button.submit", "text": "ВХОД", "styles": { "bg": "#cc7b19", "color": "#fff", "radius": "40px", "fontSize": "15px", "padding": "6px 30px 5px", "textTransform": "uppercase" } }
+      ],
+      "verbatimText": ["Calibre-Web Automated", "ИМЯ ПОЛЬЗОВАТЕЛЯ", "ПАРОЛЬ", "Show Password", "Запомнить меня", "ВХОД"],
+      "status": "captured"
+    },
+    {
+      "id": "index",
+      "url": "/",
+      "title": "Calibre-Web Automated | Books (N)",
+      "template": "vpt/cwa-source/templates/index.html",
+      "screenshot": "vpt/shots/index.png",
+      "data": { "catalog": "GET /ajax/listbooks (JSON rows)", "cover": "GET /cover/{id}" },
+      "layout": "Three regions: (1) fixed top bar; (2) fixed left sidebar with brand + grouped nav; (3) main content = page heading + sort/view toolbar + responsive cover grid. caliBlur dark theme over a textured blur background.",
+      "topBar": {
+        "left": ["home icon", "back arrow", "search input (inline)", "Advanced Search link"],
+        "right": ["send-to-device", "tasks/activity", "sync/refresh", "tools/admin (wrench)", "read-status?", "user avatar dropdown"]
+      },
+      "sidebar": {
+        "brand": { "text": "Calibre-Web Automated", "note": "REPLACE with 'My.Sensein.Book'", "color": "#f9be03" },
+        "sections": [
+          { "head": "Browse", "items": ["Books", "Hot Books", "Downloaded Books", "Top Rated Books", "Read Books", "Unread Books", "Discover", "Categories", "Series", "Authors", "Publishers", "Languages", "Ratings", "File formats", "Archived Books", "Books List", "Duplicates {n}"] },
+          { "head": "Shelves", "items": ["{user shelves…}", "Create Shelf"] },
+          { "head": "Magic Shelves ✨", "items": ["⭐ Highly Rated (n)", "🌱 Recent Publications (n)", "⏰ Recently Added (n)", "📖 Yet to Read (n)", "Create Magic Shelf"] }
+        ],
+        "note": "each Browse item has a leading glyph icon (FontAwesome/glyphicon)"
+      },
+      "mainHeading": "Books ({count})",
+      "sortToolbar": {
+        "activeColor": "#cc7b19",
+        "buttons": [
+          "Sort according to book date, newest first",
+          "Sort according to book date, oldest first",
+          "Sort title in alphabetical order",
+          "Sort title in reverse alphabetical order",
+          "Sort authors in alphabetical order",
+          "Sort authors in reverse alphabetical order",
+          "Sort according to publishing date, newest first",
+          "Sort according to publishing date, oldest first"
+        ]
+      },
+      "bookCard": { "structure": "cover image (lazy, jquery.visible) + title link + author link below", "coverSrc": "/cover/{id}" },
+      "verbatimText": ["Browse", "Shelves", "Magic Shelves ✨", "Books", "Hot Books", "Downloaded Books", "Top Rated Books", "Read Books", "Unread Books", "Discover", "Categories", "Series", "Authors", "Publishers", "Languages", "Ratings", "File formats", "Archived Books", "Books List", "Create Shelf", "Advanced Search"],
+      "status": "captured"
+    }
+  ],
+  "todo_screens": ["book detail (detail.html)", "read (reader)", "shelf (shelf detail)", "search results", "author/series/category", "upload/add-book", "user dropdown/settings"]
+}
