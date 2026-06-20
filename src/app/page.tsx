@@ -15,6 +15,7 @@ function Library() {
   const filter = sp.get("filter"); // read | unread
 
   const [books, setBooks] = useState<Book[] | null>(null);
+  const [shelfName, setShelfName] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,9 +32,21 @@ function Library() {
     return () => { cancelled = true; };
   }, [search, sort, shelf, filter]);
 
+  useEffect(() => {
+    if (!shelf) { setShelfName(null); return; }
+    api.shelves().then((r) => setShelfName(r.content.find((s) => s.id === shelf)?.name ?? null)).catch(() => {});
+  }, [shelf]);
+
+  const count = books?.length ?? 0;
   const heading = search
-    ? `${books?.length ?? 0} Results for: ${search}`
-    : `Books (${books?.length ?? 0})`;
+    ? `${count} Results for: ${search}`
+    : shelf
+      ? `${shelfName ?? "Полка"} (${count})`
+      : filter === "read"
+        ? `Read Books (${count})`
+        : filter === "unread"
+          ? `Unread Books (${count})`
+          : `Books (${count})`;
 
   return (
     <div className="px-6 py-4">

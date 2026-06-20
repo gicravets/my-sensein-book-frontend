@@ -21,10 +21,14 @@ async function send<T>(method: string, path: string, body?: unknown): Promise<T 
   return res.json() as Promise<T>;
 }
 
+export type SortKey =
+  | "recent" | "recent_old" | "title" | "title_desc"
+  | "author" | "author_desc" | "pub" | "pub_desc" | "progress";
+
 export interface BookQuery {
   search?: string;
   shelf?: string;
-  sort?: "recent" | "title" | "author" | "progress";
+  sort?: SortKey;
   page?: number;
   size?: number;
 }
