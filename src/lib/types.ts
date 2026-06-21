@@ -37,6 +37,9 @@ export interface Book {
   coverUrl: string | null;
   readProgress: ReadProgress | null;
   shelfIds: string[];
+  /** 0–5 user rating (0 = unrated). */
+  rating: number;
+  archived: boolean;
 }
 
 export interface Shelf {

@@ -111,6 +111,8 @@ function mapBook(r: CwaRow): Book {
       ? { progression: 1, totalProgression: 1, page: 0, totalPages: 0, completed: true, lastReadAt: null, deviceName: null }
       : null,
     shelfIds: [],
+    rating: 0,
+    archived: false,
   };
 }
 

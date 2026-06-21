@@ -24,6 +24,8 @@ function mkBook(b: Partial<Book> & Pick<Book, "id" | "title" | "authors">): Book
     coverUrl: null,
     readProgress: null,
     shelfIds: [],
+    rating: 0,
+    archived: false,
     ...b,
   };
 }
