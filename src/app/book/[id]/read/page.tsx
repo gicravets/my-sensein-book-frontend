@@ -288,6 +288,13 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
             <div className={`pointer-events-none absolute inset-0 z-20 reader-flip-${flip}`}
               style={{ background: `linear-gradient(${flip === "next" ? "90deg" : "270deg"}, ${t.bg}00 0%, ${t.bg}cc 55%, ${t.fg}22 100%)`, boxShadow: `0 0 40px ${t.fg}55` }} />
           )}
+          {/* side reading-progress rail (always visible) — marker travels 0→100% */}
+          {ready && (
+            <div className="pointer-events-none absolute left-1 z-10 w-[3px] rounded-full" style={{ top: "calc(env(safe-area-inset-top) + 8px)", bottom: "calc(env(safe-area-inset-bottom) + 8px)", background: `${t.fg}1f` }}>
+              <div className="absolute left-0 top-0 w-full rounded-full" style={{ height: `${Math.round(percent * 100)}%`, background: t.link, opacity: 0.85 }} />
+              <div className="absolute left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full" style={{ top: `calc(${percent * 100}% - 5px)`, background: t.link, boxShadow: "0 0 4px rgba(0,0,0,.45)" }} />
+            </div>
+          )}
           {!ready && !err && <div className="pointer-events-none absolute inset-0 grid place-items-center" style={{ opacity: 0.5 }}>Загрузка книги…</div>}
           {err && <div className="absolute inset-0 grid place-items-center p-6 text-center text-sm text-red-500">Ошибка чтения: {err}</div>}
 
