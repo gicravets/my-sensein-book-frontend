@@ -68,11 +68,11 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
         >
           <Icon name="upload" size={18} />
         </button>
-        <IconBtn name="devices" title="Отправить на устройство" className="hidden md:grid" />
-        <IconBtn name="activity" title="Задачи" className="hidden md:grid" />
-        <IconBtn name="sync" title="Синхронизация" className="hidden md:grid" />
-        <IconBtn name="wrench" title="Устройства" className="hidden md:grid" onClick={() => router.push("/devices")} />
-        <IconBtn name="columns" title="Вид" className="hidden lg:grid" />
+        <IconBtn name="devices" title="Связать устройство" className="hidden md:grid" onClick={() => router.push("/pair")} />
+        <IconBtn name="activity" title="Устройства" className="hidden md:grid" onClick={() => router.push("/devices")} />
+        <IconBtn name="sync" title="Обновить" className="hidden md:grid" onClick={() => router.refresh()} />
+        <IconBtn name="wrench" title="Расширенный поиск" className="hidden md:grid" onClick={() => router.push("/advanced")} />
+        <IconBtn name="columns" title="Вид списком" className="hidden lg:grid" onClick={() => router.push("/?view=list")} />
         <div className="relative ml-1">
           <button onClick={() => setMenuOpen((v) => !v)} className="flex items-center gap-1 rounded px-2 py-1 hover:bg-white/10" title="Профиль">
             <span className="grid h-7 w-7 place-items-center rounded-full border border-cb-border">
