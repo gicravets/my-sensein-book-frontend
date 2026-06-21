@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { api, type BookQuery } from "@/lib/api";
 import type { Book } from "@/lib/types";
 import { BookCard } from "@/components/cwa/BookCard";
+import { BooksTable } from "@/components/cwa/BooksTable";
 import { SortToolbar } from "@/components/cwa/SortToolbar";
 
 function Library() {
@@ -18,7 +19,8 @@ function Library() {
   const publisher = sp.get("publisher") ?? undefined;
   const format = sp.get("format") ?? undefined;
   const sort = (sp.get("sort") ?? "recent") as BookQuery["sort"];
-  const filter = sp.get("filter"); // read | unread
+  const filter = sp.get("filter"); // read | unread | …
+  const view = sp.get("view"); // list | (grid default)
 
   const [books, setBooks] = useState<Book[] | null>(null);
   const [shelfName, setShelfName] = useState<string | null>(null);
@@ -68,6 +70,8 @@ function Library() {
         </Grid>
       ) : books.length === 0 ? (
         <p className="py-20 text-center text-cb-muted">Ничего не найдено</p>
+      ) : view === "list" ? (
+        <BooksTable books={books} />
       ) : (
         <Grid>{books.map((b) => <BookCard key={b.id} book={b} />)}</Grid>
       )}

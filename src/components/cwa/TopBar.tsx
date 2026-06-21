@@ -54,7 +54,7 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
         />
       </form>
 
-      <Link href="#" className="ml-3 hidden items-center gap-2 text-sm text-cb-text/80 hover:text-white xl:flex">
+      <Link href="/advanced" className="ml-3 hidden items-center gap-2 text-sm text-cb-text/80 transition-colors hover:text-white xl:flex">
         <Icon name="search" size={15} /> Advanced Search
       </Link>
 

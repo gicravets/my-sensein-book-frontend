@@ -65,5 +65,14 @@ html, body {
 
 * { scrollbar-width: thin; scrollbar-color: var(--cb-border) transparent; }
 
+/* consistent, subtle transitions on all interactive elements (caliBlur feel) */
+a, button, select, input, [role="button"], .cb-interactive {
+  transition: color .15s ease, background-color .15s ease, border-color .15s ease,
+    box-shadow .15s ease, transform .12s ease, opacity .15s ease;
+}
+button:active, a:active, [role="button"]:active { transform: translateY(0.5px); }
+:focus-visible { outline: 2px solid var(--cb-accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
 /* caliBlur uppercase label style */
 .cb-label { color: var(--cb-gold); text-transform: uppercase; font-size: 13px; letter-spacing: .02em; }
