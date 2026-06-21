@@ -3,7 +3,7 @@
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import type { Highlight, HighlightColor } from "@/lib/types";
+import type { Highlight, HighlightColor, Bookmark } from "@/lib/types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -48,6 +48,11 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
   const [settings, setSettings] = useState(false);
   const [flip, setFlip] = useState<"next" | "prev" | null>(null);
   const flipping = useRef(false);
+
+  // annotations panel (highlights + bookmarks list, jump to location)
+  const [annots, setAnnots] = useState(false);
+  const [hls, setHls] = useState<Highlight[]>([]);
+  const [bms, setBms] = useState<Bookmark[]>([]);
 
   const flash = (m: string) => { setSaved(m); setTimeout(() => setSaved(null), 1500); };
 
@@ -206,10 +211,11 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
     if (!sel) return;
     const hex = COLORS.find((c) => c.key === color)!.hex;
     try { rendRef.current.annotations.highlight(sel.cfi, {}, () => {}, "", { fill: hex, "fill-opacity": "0.35" }); } catch {}
-    await api.createHighlight({
+    const created = await api.createHighlight({
       bookId: id, text: sel.text, color,
       locator: { href: null, type: "epubcfi", value: sel.cfi, progression: percent },
-    }).catch(() => {});
+    }).catch(() => null);
+    if (created) setHls((l) => [created, ...l]);
     rendRef.current?.getContents?.().forEach?.((c: any) => c.window.getSelection().removeAllRanges());
     setSel(null);
     flash("Выделение сохранено");
@@ -218,11 +224,32 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
   const addBookmark = async () => {
     const loc = rendRef.current?.currentLocation?.();
     const cfi = loc?.start?.cfi ?? null;
-    await api.createBookmark({
+    const created = await api.createBookmark({
       bookId: id, label: `Закладка · ${Math.round(percent * 100)}%`,
       locator: { href: null, type: "epubcfi", value: cfi, progression: percent },
-    }).catch(() => {});
+    }).catch(() => null);
+    if (created) setBms((b) => [created, ...b]);
     flash("Закладка добавлена");
+  };
+
+  const loadAnnots = useCallback(async () => {
+    try { setHls((await api.highlights(id)).content); } catch {}
+    try { setBms((await api.bookmarks(id)).content); } catch {}
+  }, [id]);
+
+  const jumpTo = (value: string | null) => {
+    if (value) { try { rendRef.current?.display(value); } catch {} }
+    setAnnots(false);
+  };
+
+  const deleteHl = async (h: Highlight) => {
+    await api.deleteHighlight(h.id).catch(() => {});
+    setHls((l) => l.filter((x) => x.id !== h.id));
+    if (h.locator.value) { try { rendRef.current?.annotations.remove(h.locator.value, "highlight"); } catch {} }
+  };
+  const deleteBm = async (b: Bookmark) => {
+    await api.deleteBookmark(b.id).catch(() => {});
+    setBms((l) => l.filter((x) => x.id !== b.id));
   };
 
   const t = THEMES[theme];
@@ -244,7 +271,8 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
             <span className="font-semibold">{title}</span>{author && <span style={{ opacity: 0.7 }}> — {author}</span>}
           </div>
           <IconBtn onClick={() => { setSettings((v) => !v); }} title="Вид (Aa)" t={t}>Aa</IconBtn>
-          <IconBtn onClick={addBookmark} title="Закладка" t={t}>🔖</IconBtn>
+          <IconBtn onClick={addBookmark} title="Добавить закладку" t={t}>🔖</IconBtn>
+          <IconBtn onClick={() => { setAnnots(true); loadAnnots(); }} title="Заметки и закладки" t={t}>📑</IconBtn>
           <Link href={`/book/${id}`} title="К книге" className="grid h-10 w-10 place-items-center rounded-lg active:scale-90" style={{ color: t.fg, opacity: 0.75 }}>✕</Link>
         </header>
       )}
@@ -274,6 +302,55 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
             <div className="flex items-center gap-3">
               <button onClick={() => setFontPct((f) => Math.max(80, f - 10))} className="h-16 flex-1 rounded-2xl text-2xl font-semibold active:scale-95" style={{ border: `1px solid ${t.fg}33` }}>A−</button>
               <button onClick={() => setFontPct((f) => Math.min(200, f + 10))} className="h-16 flex-1 rounded-2xl text-3xl font-semibold active:scale-95" style={{ border: `1px solid ${t.fg}33` }}>A+</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* annotations panel — highlights + bookmarks, jump to location */}
+      {annots && (
+        <>
+          <div className="fixed inset-0 z-40" style={{ background: "rgba(0,0,0,0.4)" }} onClick={() => setAnnots(false)} />
+          <div className="fixed right-0 top-0 z-50 flex h-full w-[88%] max-w-sm flex-col p-4 shadow-2xl" style={{ background: t.bg, borderLeft: `1px solid ${t.fg}22`, paddingTop: "calc(1rem + env(safe-area-inset-top))" }} onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-center gap-2">
+              <h2 className="mr-auto text-base font-semibold">Заметки и закладки</h2>
+              <button onClick={() => setAnnots(false)} className="grid h-9 w-9 place-items-center rounded-lg active:scale-90" style={{ color: t.fg, opacity: 0.7 }}>✕</button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {hls.length === 0 && bms.length === 0 && (
+                <p className="py-12 text-center text-sm" style={{ opacity: 0.5 }}>Пока нет выделений и закладок.<br />Выделите текст или нажмите 🔖.</p>
+              )}
+              {bms.length > 0 && (
+                <>
+                  <div className="mb-1.5 mt-1 text-xs uppercase tracking-wide" style={{ opacity: 0.5 }}>Закладки</div>
+                  {bms.map((b) => (
+                    <div key={b.id} className="group mb-1.5 flex items-center gap-2 rounded-lg px-2 py-2" style={{ background: `${t.fg}08` }}>
+                      <button onClick={() => jumpTo(b.locator.value)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                        <span style={{ color: t.link }}>🔖</span>
+                        <span className="truncate text-sm">{b.label}</span>
+                      </button>
+                      <button onClick={() => deleteBm(b)} className="shrink-0 px-1 text-sm opacity-50 hover:opacity-100" title="Удалить">🗑</button>
+                    </div>
+                  ))}
+                </>
+              )}
+              {hls.length > 0 && (
+                <>
+                  <div className="mb-1.5 mt-3 text-xs uppercase tracking-wide" style={{ opacity: 0.5 }}>Выделения</div>
+                  {hls.map((h) => (
+                    <div key={h.id} className="group mb-1.5 rounded-lg px-2 py-2" style={{ background: `${t.fg}08` }}>
+                      <div className="flex items-start gap-2">
+                        <button onClick={() => jumpTo(h.locator.value)} className="flex min-w-0 flex-1 items-start gap-2 text-left">
+                          <span className="mt-1 h-3 w-3 shrink-0 rounded-full" style={{ background: COLORS.find((c) => c.key === h.color)?.hex ?? "#eab308" }} />
+                          <span className="text-sm leading-snug line-clamp-3">{h.text}</span>
+                        </button>
+                        <button onClick={() => deleteHl(h)} className="shrink-0 px-1 text-sm opacity-50 hover:opacity-100" title="Удалить">🗑</button>
+                      </div>
+                      {h.note && <p className="mt-1 pl-5 text-xs" style={{ opacity: 0.65 }}>📝 {h.note}</p>}
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           </div>
         </>
