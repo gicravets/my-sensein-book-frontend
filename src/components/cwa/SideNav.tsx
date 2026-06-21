@@ -9,9 +9,9 @@ import { Icon } from "./Icon";
 
 const BROWSE: { icon: string; label: string; href: string }[] = [
   { icon: "book", label: "Books", href: "/" },
-  { icon: "fire", label: "Hot Books", href: "/?sort=recent&filter=read" },
+  { icon: "fire", label: "Hot Books", href: "/?filter=hot" },
   { icon: "download", label: "Downloaded Books", href: "/?filter=downloaded" },
-  { icon: "star", label: "Top Rated Books", href: "/?sort=rating&filter=rated" },
+  { icon: "star", label: "Top Rated Books", href: "/?filter=rated&sort=rating" },
   { icon: "eye", label: "Read Books", href: "/?filter=read" },
   { icon: "eyeSlash", label: "Unread Books", href: "/?filter=unread" },
   { icon: "shuffle", label: "Discover", href: "/?sort=random" },
@@ -20,7 +20,7 @@ const BROWSE: { icon: string; label: string; href: string }[] = [
   { icon: "user", label: "Authors", href: "/browse/authors" },
   { icon: "text", label: "Publishers", href: "/browse/publishers" },
   { icon: "flag", label: "Languages", href: "/browse/languages" },
-  { icon: "star", label: "Ratings", href: "/?sort=rating" },
+  { icon: "star", label: "Ratings", href: "/?filter=rated&sort=rating" },
   { icon: "file", label: "File formats", href: "/browse/formats" },
   { icon: "archive", label: "Archived Books", href: "/?filter=archived" },
   { icon: "list", label: "Books List", href: "/?view=list" },

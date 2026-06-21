@@ -32,6 +32,18 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
     if (updated) setBook(updated);
   };
 
+  const rate = async (n: number) => {
+    if (!book) return;
+    const updated = await api.setRating(book.id, n === book.rating ? 0 : n);
+    if (updated) setBook(updated);
+  };
+
+  const toggleArchive = async () => {
+    if (!book) return;
+    const updated = await api.setArchived(book.id, !book.archived);
+    if (updated) setBook(updated);
+  };
+
   if (notFound) return <Centered>Книга не найдена</Centered>;
   if (!book) return <Centered>Загрузка…</Centered>;
 
@@ -91,15 +103,22 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
               )}
             </div>
             <ActionIcon name="pencil" title="Редактировать" />
+            <button onClick={toggleArchive}>
+              <ActionIcon name="archive" title={book.archived ? "Разархивировать" : "В архив"} active={book.archived} />
+            </button>
             <ActionIcon name="trash" title="Удалить" />
           </div>
 
           <h1 className="text-[2rem] font-bold leading-tight text-cb-text">{book.title}</h1>
           <p className="mt-1 text-cb-muted">{book.authors.join(", ")}</p>
 
-          {/* rating */}
-          <div className="mt-3 flex gap-1 text-cb-muted">
-            {Array.from({ length: 5 }).map((_, i) => <Icon key={i} name="star" size={18} />)}
+          {/* rating (interactive) */}
+          <div className="mt-3 flex gap-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <button key={i} onClick={() => rate(i + 1)} title={`${i + 1} / 5`} className="transition-transform hover:scale-110">
+                <Icon name="star" size={18} className={i < book.rating ? "text-cb-gold" : "text-cb-muted hover:text-cb-gold"} />
+              </button>
+            ))}
           </div>
 
           {/* read / continue */}

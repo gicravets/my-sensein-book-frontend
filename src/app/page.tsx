@@ -26,14 +26,8 @@ function Library() {
   useEffect(() => {
     let cancelled = false;
     setBooks(null);
-    api.books({ search, sort, shelf, tag, author, series, language, publisher, format })
-      .then((r) => {
-        if (cancelled) return;
-        let list = r.content;
-        if (filter === "read") list = list.filter((b) => b.readProgress?.completed);
-        if (filter === "unread") list = list.filter((b) => !b.readProgress?.completed);
-        setBooks(list);
-      })
+    api.books({ search, sort, shelf, tag, author, series, language, publisher, format, filter: filter ?? undefined })
+      .then((r) => { if (!cancelled) setBooks(r.content); })
       .catch((e) => console.error("[lib] books fetch failed:", e));
     return () => { cancelled = true; };
   }, [search, sort, shelf, tag, author, series, language, publisher, format, filter]);
@@ -45,17 +39,19 @@ function Library() {
 
   const count = books?.length ?? 0;
   const facet = tag ?? author ?? series ?? language ?? publisher ?? format;
+  const FILTER_TITLES: Record<string, string> = {
+    read: "Read Books", unread: "Unread Books", archived: "Archived Books",
+    rated: "Top Rated Books", downloaded: "Downloaded Books", hot: "Hot Books",
+  };
   const heading = search
     ? `${count} Results for: ${search}`
     : facet
       ? `${facet} (${count})`
       : shelf
         ? `${shelfName ?? "Полка"} (${count})`
-        : filter === "read"
-          ? `Read Books (${count})`
-          : filter === "unread"
-            ? `Unread Books (${count})`
-            : `Books (${count})`;
+        : filter && FILTER_TITLES[filter]
+          ? `${FILTER_TITLES[filter]} (${count})`
+          : `Books (${count})`;
 
   return (
     <div className="px-6 py-4">

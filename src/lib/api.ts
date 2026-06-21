@@ -34,6 +34,7 @@ export interface BookQuery {
   language?: string;
   publisher?: string;
   format?: string;
+  filter?: string; // read | unread | archived | rated | downloaded | hot
   sort?: SortKey;
   page?: number;
   size?: number;
@@ -50,6 +51,7 @@ export const api = {
     if (q.language) sp.set("language", q.language);
     if (q.publisher) sp.set("publisher", q.publisher);
     if (q.format) sp.set("format", q.format);
+    if (q.filter) sp.set("filter", q.filter);
     if (q.sort) sp.set("sort", q.sort);
     if (q.page != null) sp.set("page", String(q.page));
     if (q.size != null) sp.set("size", String(q.size));
@@ -90,6 +92,10 @@ export const api = {
     send<ReadProgress>("PUT", `/api/v1/books/${id}/progression`, p),
   markRead: (id: string, completed: boolean) =>
     send<ReadProgress>("PATCH", `/api/v1/books/${id}/read-progress`, { completed }),
+  setRating: (id: string, rating: number) =>
+    send<Book>("PATCH", `/api/v1/books/${id}/rating`, { rating }),
+  setArchived: (id: string, archived: boolean) =>
+    send<Book>("PATCH", `/api/v1/books/${id}/archived`, { archived }),
   createHighlight: (h: {
     bookId: string; text: string; color?: string; note?: string | null; locator: Locator;
   }) => send<Highlight>("POST", `/api/v1/highlights`, h),
