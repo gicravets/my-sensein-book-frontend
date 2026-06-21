@@ -78,6 +78,10 @@ export const api = {
   // file URL for the reader (epub.js loads this directly)
   bookFileUrl: (id: string) => `${BASE}/api/v1/books/${id}/file`,
 
+  // devices management
+  devices: () => get<{ content: { id: string; name: string; created: string }[]; totalElements: number }>(`/api/v1/devices`),
+  deleteDevice: (id: string) => send<null>("DELETE", `/api/v1/devices/${id}`),
+
   // device pairing (web side): create token + poll status
   createPairing: () =>
     send<{ token: string; expires: string; qr: { url: string; t: string } }>("POST", `/api/v1/auth/pair`),
