@@ -12,6 +12,7 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
   const [q, setQ] = useState(sp.get("search") ?? "");
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,12 +73,25 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
         <IconBtn name="sync" title="Синхронизация" className="hidden md:grid" />
         <IconBtn name="wrench" title="Администрирование" className="hidden md:grid" />
         <IconBtn name="columns" title="Вид" className="hidden lg:grid" />
-        <button className="ml-1 flex items-center gap-1 rounded px-2 py-1 hover:bg-white/10" title="Профиль">
-          <span className="grid h-7 w-7 place-items-center rounded-full border border-cb-border">
-            <Icon name="user" size={16} />
-          </span>
-          <Icon name="caret" size={14} className="hidden sm:block" />
-        </button>
+        <div className="relative ml-1">
+          <button onClick={() => setMenuOpen((v) => !v)} className="flex items-center gap-1 rounded px-2 py-1 hover:bg-white/10" title="Профиль">
+            <span className="grid h-7 w-7 place-items-center rounded-full border border-cb-border">
+              <Icon name="user" size={16} />
+            </span>
+            <Icon name="caret" size={14} className="hidden sm:block" />
+          </button>
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+              <div className="absolute right-0 top-11 z-50 w-52 overflow-hidden rounded-lg border border-cb-border bg-cb-panel py-1 shadow-xl">
+                <Link href="/pair" onClick={() => setMenuOpen(false)} className="block px-4 py-2 text-sm text-cb-text/90 hover:bg-white/5 hover:text-white">📱 Связать устройство</Link>
+                <Link href="/advanced" onClick={() => setMenuOpen(false)} className="block px-4 py-2 text-sm text-cb-text/90 hover:bg-white/5 hover:text-white">🔍 Расширенный поиск</Link>
+                <div className="my-1 border-t border-cb-border/60" />
+                <div className="px-4 py-2 text-xs text-cb-muted">My.Sensein.Book</div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );

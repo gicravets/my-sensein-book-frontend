@@ -78,6 +78,12 @@ export const api = {
   // file URL for the reader (epub.js loads this directly)
   bookFileUrl: (id: string) => `${BASE}/api/v1/books/${id}/file`,
 
+  // device pairing (web side): create token + poll status
+  createPairing: () =>
+    send<{ token: string; expires: string; qr: { url: string; t: string } }>("POST", `/api/v1/auth/pair`),
+  pairingStatus: (token: string) =>
+    get<{ status: string; deviceName: string }>(`/api/v1/auth/pair/status?token=${encodeURIComponent(token)}`),
+
   // upload an EPUB (multipart) — backend parses metadata + cover
   uploadBook: async (file: File) => {
     const fd = new FormData();
