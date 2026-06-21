@@ -17,6 +17,10 @@ data from our Go backend. Next.js 16 + React 19 + TS + Tailwind 4 (App Router) +
     -e NEXT_PUBLIC_API_BASE=http://localhost:8090 \
     node:22-alpine sh -c "npm run dev -- -H 0.0.0.0 -p 3000"
   ```
+- **Prod:** `output: "standalone"` + multi-stage `Dockerfile` (`node server.js`). Deploy the
+  whole stack from the backend repo: `docker compose up --build -d` (web :3000, API :8090).
+  `NEXT_PUBLIC_API_BASE` is baked at BUILD time — rebuild `web` to change the API URL.
+  Verify the prod build after big changes: `docker run --rm -v "$PWD":/work -w /work node:22-alpine sh -c "npm ci && npm run build"`.
 - Next 16 specifics: route handler `params` is a Promise (`await params`); `useSearchParams`
   needs a Suspense boundary above it (layout provides one — avoid a second nested one,
   it can hang on its fallback).
