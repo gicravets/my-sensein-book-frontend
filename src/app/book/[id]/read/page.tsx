@@ -179,15 +179,21 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
     return () => window.removeEventListener("keyup", h);
   }, [onKey]);
 
-  // apply theme / font changes live + persist
-  useEffect(() => {
-    try { rendRef.current?.themes.select(theme); } catch {}
-    localStorage.setItem("reader.theme", theme);
-  }, [theme]);
-  useEffect(() => {
-    try { rendRef.current?.themes.fontSize(`${fontPct}%`); } catch {}
-    localStorage.setItem("reader.font", String(fontPct));
-  }, [fontPct]);
+  // apply theme / font changes live + persist. epub.js doesn't reliably repaint
+  // already-rendered content on theme/font change (esp. Safari), so re-display the
+  // current page to force a re-render with the new styles.
+  const reapply = useCallback(() => {
+    const r = rendRef.current;
+    if (!r) return;
+    try {
+      r.themes.select(theme);
+      r.themes.fontSize(`${fontPct}%`);
+      const cfi = r.currentLocation?.()?.start?.cfi;
+      if (cfi) r.display(cfi);
+    } catch {}
+  }, [theme, fontPct]);
+  useEffect(() => { reapply(); localStorage.setItem("reader.theme", theme); }, [theme, reapply]);
+  useEffect(() => { reapply(); localStorage.setItem("reader.font", String(fontPct)); }, [fontPct, reapply]);
 
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>;
