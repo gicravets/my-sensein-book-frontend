@@ -121,6 +121,9 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
       });
 
       await rendition.display();
+      // re-fit after layout settles so the column width matches the viewport (no clipping)
+      const refit = () => { const v = viewerRef.current; if (v) { try { rendition.resize(v.clientWidth, v.clientHeight); } catch {} } };
+      requestAnimationFrame(refit); setTimeout(refit, 350);
       book.loaded.navigation.then((nav: any) =>
         setToc(nav.toc.map((t: any) => ({ label: t.label.trim(), href: t.href }))),
       );
@@ -188,7 +191,7 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
 
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>;
-    const onResize = () => { clearTimeout(t); t = setTimeout(() => { try { rendRef.current?.resize(); } catch {} }, 200); };
+    const onResize = () => { clearTimeout(t); t = setTimeout(() => { const v = viewerRef.current; if (v) { try { rendRef.current?.resize(v.clientWidth, v.clientHeight); } catch {} } }, 200); };
     window.addEventListener("resize", onResize);
     return () => { clearTimeout(t); window.removeEventListener("resize", onResize); };
   }, []);
@@ -236,29 +239,38 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
           </div>
           <IconBtn onClick={() => { setSettings((v) => !v); }} title="Вид (Aa)" t={t}>Aa</IconBtn>
           <IconBtn onClick={addBookmark} title="Закладка" t={t}>🔖</IconBtn>
-          <Link href={`/book/${id}`} title="К книге" className="grid h-8 w-8 place-items-center rounded" style={{ color: t.fg, opacity: 0.7 }}>✕</Link>
+          <Link href={`/book/${id}`} title="К книге" className="grid h-10 w-10 place-items-center rounded-lg active:scale-90" style={{ color: t.fg, opacity: 0.75 }}>✕</Link>
         </header>
       )}
 
-      {/* settings popover: theme + font size */}
+      {/* settings: bottom sheet with large touch targets (phone + tablet) */}
       {settings && (
-        <div className="absolute right-3 top-12 z-30 w-60 rounded-xl p-3 shadow-2xl" style={{ background: t.bg, border: `1px solid ${t.fg}33` }} onClick={(e) => e.stopPropagation()}>
-          <div className="mb-1.5 text-xs uppercase tracking-wide" style={{ opacity: 0.6 }}>Тема</div>
-          <div className="mb-3 flex gap-2">
-            {(Object.keys(THEMES) as ThemeKey[]).map((k) => (
-              <button key={k} onClick={() => setTheme(k)}
-                className="flex-1 rounded-lg px-2 py-2 text-xs"
-                style={{ background: THEMES[k].bg, color: THEMES[k].fg, outline: theme === k ? `2px solid ${t.link}` : `1px solid ${t.fg}33` }}>
-                {THEMES[k].label}
-              </button>
-            ))}
+        <>
+          <div className="fixed inset-0 z-40" style={{ background: "rgba(0,0,0,0.35)" }} onClick={() => setSettings(false)} />
+          <div className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-lg rounded-t-3xl p-5 shadow-2xl"
+            style={{ background: t.bg, borderTop: `1px solid ${t.fg}22`, paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom))" }}
+            onClick={(e) => e.stopPropagation()}>
+            <div className="mx-auto mb-5 h-1.5 w-12 rounded-full" style={{ background: `${t.fg}40` }} />
+            <div className="mb-2 text-xs uppercase tracking-wide" style={{ opacity: 0.6 }}>Тема</div>
+            <div className="mb-6 grid grid-cols-3 gap-3">
+              {(Object.keys(THEMES) as ThemeKey[]).map((k) => (
+                <button key={k} onClick={() => setTheme(k)}
+                  className="flex h-20 flex-col items-center justify-center gap-1 rounded-2xl text-sm font-medium"
+                  style={{ background: THEMES[k].bg, color: THEMES[k].fg, outline: theme === k ? `2.5px solid ${t.link}` : `1px solid ${t.fg}33`, outlineOffset: "-1px" }}>
+                  <span className="text-2xl" style={{ fontFamily: "Georgia, serif" }}>Aa</span>
+                  {THEMES[k].label}
+                </button>
+              ))}
+            </div>
+            <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wide" style={{ opacity: 0.6 }}>
+              <span>Размер шрифта</span><span>{fontPct}%</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <button onClick={() => setFontPct((f) => Math.max(80, f - 10))} className="h-16 flex-1 rounded-2xl text-2xl font-semibold active:scale-95" style={{ border: `1px solid ${t.fg}33` }}>A−</button>
+              <button onClick={() => setFontPct((f) => Math.min(200, f + 10))} className="h-16 flex-1 rounded-2xl text-3xl font-semibold active:scale-95" style={{ border: `1px solid ${t.fg}33` }}>A+</button>
+            </div>
           </div>
-          <div className="mb-1.5 text-xs uppercase tracking-wide" style={{ opacity: 0.6 }}>Размер шрифта · {fontPct}%</div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setFontPct((f) => Math.max(80, f - 10))} className="h-8 flex-1 rounded-lg text-lg" style={{ border: `1px solid ${t.fg}33` }}>A−</button>
-            <button onClick={() => setFontPct((f) => Math.min(180, f + 10))} className="h-8 flex-1 rounded-lg text-lg" style={{ border: `1px solid ${t.fg}33` }}>A+</button>
-          </div>
-        </div>
+        </>
       )}
 
       <div className="relative flex flex-1 overflow-hidden">
@@ -281,7 +293,7 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
           </aside>
         )}
 
-        <div className="relative flex-1" style={{ perspective: "1600px" }}>
+        <div className="relative min-w-0 flex-1 overflow-hidden" style={{ perspective: "1600px" }}>
           <div ref={viewerRef} className="h-full w-full" />
           {/* page-curl overlay */}
           {flip && (
@@ -326,7 +338,7 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
 
 function IconBtn({ onClick, title, children, t }: { onClick: () => void; title: string; children: React.ReactNode; t: { fg: string } }) {
   return (
-    <button onClick={onClick} title={title} className="grid h-8 w-8 place-items-center rounded text-sm hover:opacity-100" style={{ color: t.fg, opacity: 0.7 }}>
+    <button onClick={onClick} title={title} className="grid h-10 w-10 place-items-center rounded-lg text-base hover:opacity-100 active:scale-90" style={{ color: t.fg, opacity: 0.75 }}>
       {children}
     </button>
   );
