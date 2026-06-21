@@ -229,7 +229,7 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
 
       {/* top bar */}
       {chrome && (
-        <header className="flex items-center gap-3 px-4 py-2.5" style={{ borderBottom: `1px solid ${t.fg}22` }} onClick={(e) => e.stopPropagation()}>
+        <header className="flex items-center gap-3 px-4 py-2.5" style={{ borderBottom: `1px solid ${t.fg}22`, paddingTop: "calc(0.625rem + env(safe-area-inset-top))" }} onClick={(e) => e.stopPropagation()}>
           <IconBtn onClick={() => setShowToc((v) => !v)} title="Оглавление" t={t}>☰</IconBtn>
           <div className="flex-1 truncate text-center text-sm" style={{ opacity: 0.8 }}>
             <span className="font-semibold">{title}</span>{author && <span style={{ opacity: 0.7 }}> — {author}</span>}
@@ -263,7 +263,10 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
 
       <div className="relative flex flex-1 overflow-hidden">
         {showToc && (
-          <aside className="w-72 shrink-0 overflow-y-auto p-3" style={{ borderRight: `1px solid ${t.fg}22`, background: t.bg }} onClick={(e) => e.stopPropagation()}>
+          <div className="absolute inset-0 z-10 bg-black/40 md:hidden" onClick={(e) => { e.stopPropagation(); setShowToc(false); }} />
+        )}
+        {showToc && (
+          <aside className="absolute left-0 top-0 z-20 h-full w-[82%] max-w-xs overflow-y-auto p-3 shadow-2xl md:static md:z-0 md:w-72 md:shadow-none" style={{ borderRight: `1px solid ${t.fg}22`, background: t.bg }} onClick={(e) => e.stopPropagation()}>
             <div className="mb-2 px-2 text-xs uppercase tracking-wide" style={{ opacity: 0.6 }}>Оглавление</div>
             <ul className="flex flex-col">
               {toc.map((it, i) => (
@@ -290,11 +293,12 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
 
           {chrome && (
             <>
-              <button aria-label="prev" onClick={(e) => { e.stopPropagation(); turn("prev"); }} className="absolute left-0 top-0 grid h-full w-14 place-items-center text-3xl" style={{ color: `${t.fg}33` }}>‹</button>
-              <button aria-label="next" onClick={(e) => { e.stopPropagation(); turn("next"); }} className="absolute right-0 top-0 grid h-full w-14 place-items-center text-3xl" style={{ color: `${t.fg}33` }}>›</button>
+              {/* desktop chevrons; on phone use tap-zones + swipe */}
+              <button aria-label="prev" onClick={(e) => { e.stopPropagation(); turn("prev"); }} className="absolute left-0 top-0 hidden h-full w-14 place-items-center text-3xl md:grid" style={{ color: `${t.fg}33` }}>‹</button>
+              <button aria-label="next" onClick={(e) => { e.stopPropagation(); turn("next"); }} className="absolute right-0 top-0 hidden h-full w-14 place-items-center text-3xl md:grid" style={{ color: `${t.fg}33` }}>›</button>
             </>
           )}
-          <div className="pointer-events-none absolute bottom-3 right-5 text-sm font-medium" style={{ opacity: 0.7 }}>{Math.round(percent * 100)}%</div>
+          <div className="pointer-events-none absolute right-5 text-sm font-medium" style={{ opacity: 0.7, bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}>{Math.round(percent * 100)}%</div>
         </div>
       </div>
 
