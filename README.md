@@ -50,3 +50,13 @@ src/
     mock-data.ts  # сид мок-данных
 data/sample.epub  # тестовая книга для читалки (Project Gutenberg, public domain)
 ```
+
+## Документы и UI Kit (вне этого репо)
+
+> Этот репозиторий — **только код**. Правила, журналы (VPT/QA), ресёрч и заметки для агентов
+> живут в `my-sensein-book-docs`, дизайн-система PWA — в `my-sensein-book-ui-kit`.
+> **Начни с** [`../my-sensein-book-docs/REGULATIONS.md`](../my-sensein-book-docs/).
+
+- PWA/бэкенд-доки: [`../my-sensein-book-docs`](../my-sensein-book-docs/) ([GitHub](https://github.com/gicravets/my-sensein-book-docs))
+- PWA UI Kit: [`../my-sensein-book-ui-kit`](../my-sensein-book-ui-kit/) ([GitHub](https://github.com/gicravets/my-sensein-book-ui-kit))
+- Бэкенд: [my-sensein-book-backend](https://github.com/gicravets/my-sensein-book-backend)
