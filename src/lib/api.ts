@@ -48,6 +48,15 @@ export interface SmartShelf {
   rules: SmartRules;
 }
 
+// A saved quote matched by full-text search.
+export interface HighlightHit {
+  id: string;
+  bookId: string;
+  bookTitle: string;
+  text: string;
+  note: string;
+}
+
 export const api = {
   books: (q: BookQuery = {}) => {
     const sp = new URLSearchParams();
@@ -95,6 +104,13 @@ export const api = {
     if (q.size != null) sp.set("size", String(q.size));
     const qs = sp.toString();
     return get<Page<Book>>(`/api/v1/smart-shelves/${id}/books${qs ? `?${qs}` : ""}`);
+  },
+
+  // full-text search (book metadata + saved quotes)
+  search: (q: string, limit?: number) => {
+    const sp = new URLSearchParams({ q });
+    if (limit != null) sp.set("limit", String(limit));
+    return get<{ books: Book[]; highlights: HighlightHit[] }>(`/api/v1/search?${sp.toString()}`);
   },
 
   // server setup / demo / update

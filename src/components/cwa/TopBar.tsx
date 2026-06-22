@@ -34,7 +34,7 @@ export function TopBar({ onMenu }: { onMenu: () => void }) {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(q.trim() ? `/?search=${encodeURIComponent(q.trim())}` : "/");
+    router.push(q.trim() ? `/search?q=${encodeURIComponent(q.trim())}` : "/");
   };
 
   return (
