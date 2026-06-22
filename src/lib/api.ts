@@ -75,6 +75,11 @@ export const api = {
       `/api/v1/bookmarks${bookId ? `?bookId=${bookId}` : ""}`,
     ),
 
+  // reader preferences (per-user; synced across devices)
+  preferences: () => get<Record<string, unknown>>(`/api/v1/preferences`),
+  putPreferences: (prefs: Record<string, unknown>) =>
+    send<Record<string, unknown>>("PUT", `/api/v1/preferences`, prefs),
+
   // file URL for the reader (epub.js loads this directly)
   bookFileUrl: (id: string) => `${BASE}/api/v1/books/${id}/file`,
 

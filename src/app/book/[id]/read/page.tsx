@@ -49,6 +49,17 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
   const [flip, setFlip] = useState<"next" | "prev" | null>(null);
   const flipping = useRef(false);
 
+  // reader-prefs sync: server is the source of truth on load; changes PUT debounced.
+  const prefsLoaded = useRef(false);
+  const prefsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const syncPrefs = useCallback((theme: ThemeKey, fontPct: number) => {
+    if (!prefsLoaded.current) return; // don't clobber server with defaults before first load
+    if (prefsTimer.current) clearTimeout(prefsTimer.current);
+    prefsTimer.current = setTimeout(() => {
+      api.putPreferences({ theme, fontPct }).catch(() => {});
+    }, 600);
+  }, []);
+
   // annotations panel (highlights + bookmarks list, jump to location)
   const [annots, setAnnots] = useState(false);
   const [hls, setHls] = useState<Highlight[]>([]);
@@ -103,6 +114,19 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
       }
       rendition.themes.select(savedTheme);
       rendition.themes.fontSize(`${savedFont}%`);
+
+      // pull synced reader prefs (cross-device); server wins over local on load
+      api.preferences().then((p) => {
+        if (disposed || !p) return;
+        if (typeof p.theme === "string" && THEMES[p.theme as ThemeKey]) {
+          const t = p.theme as ThemeKey;
+          setTheme(t); rendition.themes.select(t); localStorage.setItem("reader.theme", t);
+        }
+        if (typeof p.fontPct === "number") {
+          setFontPct(p.fontPct); rendition.themes.fontSize(`${p.fontPct}%`);
+          localStorage.setItem("reader.font", String(p.fontPct));
+        }
+      }).catch(() => {}).finally(() => { prefsLoaded.current = true; });
 
       // tap-zones (left/center/right) + swipe, inside the rendered iframe
       rendition.hooks.content.register((contents: any) => {
@@ -197,8 +221,8 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
       if (cfi) r.display(cfi);
     } catch {}
   }, [theme, fontPct]);
-  useEffect(() => { reapply(); localStorage.setItem("reader.theme", theme); }, [theme, reapply]);
-  useEffect(() => { reapply(); localStorage.setItem("reader.font", String(fontPct)); }, [fontPct, reapply]);
+  useEffect(() => { reapply(); localStorage.setItem("reader.theme", theme); syncPrefs(theme, fontPct); }, [theme, reapply, fontPct, syncPrefs]);
+  useEffect(() => { reapply(); localStorage.setItem("reader.font", String(fontPct)); syncPrefs(theme, fontPct); }, [fontPct, reapply, theme, syncPrefs]);
 
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>;
