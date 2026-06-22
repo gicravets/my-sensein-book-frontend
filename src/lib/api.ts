@@ -40,6 +40,14 @@ export interface BookQuery {
   size?: number;
 }
 
+// A smart shelf is a saved subset of a book query (the "rule").
+export type SmartRules = Pick<BookQuery, "filter" | "search" | "tag" | "author" | "sort">;
+export interface SmartShelf {
+  id: string;
+  name: string;
+  rules: SmartRules;
+}
+
 export const api = {
   books: (q: BookQuery = {}) => {
     const sp = new URLSearchParams();
@@ -74,6 +82,20 @@ export const api = {
     get<{ content: Bookmark[]; totalElements: number }>(
       `/api/v1/bookmarks${bookId ? `?bookId=${bookId}` : ""}`,
     ),
+
+  // smart shelves (dynamic, rule-based)
+  smartShelves: () =>
+    get<{ content: SmartShelf[]; totalElements: number }>(`/api/v1/smart-shelves`),
+  createSmartShelf: (name: string, rules: SmartRules) =>
+    send<SmartShelf>("POST", `/api/v1/smart-shelves`, { name, rules }),
+  deleteSmartShelf: (id: string) => send<null>("DELETE", `/api/v1/smart-shelves/${id}`),
+  smartShelfBooks: (id: string, q: { page?: number; size?: number } = {}) => {
+    const sp = new URLSearchParams();
+    if (q.page != null) sp.set("page", String(q.page));
+    if (q.size != null) sp.set("size", String(q.size));
+    const qs = sp.toString();
+    return get<Page<Book>>(`/api/v1/smart-shelves/${id}/books${qs ? `?${qs}` : ""}`);
+  },
 
   // reader preferences (per-user; synced across devices)
   preferences: () => get<Record<string, unknown>>(`/api/v1/preferences`),

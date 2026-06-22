@@ -20,6 +20,7 @@ function Library() {
   const format = sp.get("format") ?? undefined;
   const sort = (sp.get("sort") ?? "recent") as BookQuery["sort"];
   const filter = sp.get("filter"); // read | unread | …
+  const smartShelf = sp.get("smartShelf"); // dynamic rule-based shelf id
   const view = sp.get("view"); // list | (grid default)
 
   const [books, setBooks] = useState<Book[] | null>(null);
@@ -28,11 +29,14 @@ function Library() {
   useEffect(() => {
     let cancelled = false;
     setBooks(null);
-    api.books({ search, sort, shelf, tag, author, series, language, publisher, format, filter: filter ?? undefined })
+    const load = smartShelf
+      ? api.smartShelfBooks(smartShelf)
+      : api.books({ search, sort, shelf, tag, author, series, language, publisher, format, filter: filter ?? undefined });
+    load
       .then((r) => { if (!cancelled) setBooks(r.content); })
       .catch((e) => console.error("[lib] books fetch failed:", e));
     return () => { cancelled = true; };
-  }, [search, sort, shelf, tag, author, series, language, publisher, format, filter]);
+  }, [search, sort, shelf, tag, author, series, language, publisher, format, filter, smartShelf]);
 
   useEffect(() => {
     if (!shelf) { setShelfName(null); return; }
