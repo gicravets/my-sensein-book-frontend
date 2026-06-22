@@ -97,6 +97,15 @@ export const api = {
     return get<Page<Book>>(`/api/v1/smart-shelves/${id}/books${qs ? `?${qs}` : ""}`);
   },
 
+  // server setup / demo / update
+  setup: () =>
+    get<{ claimed: boolean; demo: boolean; requiresAuth: boolean; version: string }>(`/api/v1/setup`),
+  claimSetup: (apiKey?: string) =>
+    send<{ apiKey: string; claimed: boolean }>("POST", `/api/v1/setup/claim`, apiKey ? { apiKey } : {}),
+  serverVersion: () => get<{ version: string; demo: boolean }>(`/api/v1/version`),
+  checkUpdate: () =>
+    get<{ current: string; latest: string; updateAvailable: boolean; url: string }>(`/api/v1/update`),
+
   // reader preferences (per-user; synced across devices)
   preferences: () => get<Record<string, unknown>>(`/api/v1/preferences`),
   putPreferences: (prefs: Record<string, unknown>) =>
