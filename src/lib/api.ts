@@ -171,6 +171,8 @@ export const api = {
     send<Book>("PATCH", `/api/v1/books/${id}/rating`, { rating }),
   setArchived: (id: string, archived: boolean) =>
     send<Book>("PATCH", `/api/v1/books/${id}/archived`, { archived }),
+  enrichBook: (id: string) =>
+    send<{ book: Book; enriched: boolean }>("POST", `/api/v1/books/${id}/enrich`),
   createHighlight: (h: {
     bookId: string; text: string; color?: string; note?: string | null; locator: Locator;
   }) => send<Highlight>("POST", `/api/v1/highlights`, h),

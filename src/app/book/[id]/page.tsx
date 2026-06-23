@@ -44,6 +44,17 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
     if (updated) setBook(updated);
   };
 
+  const [enriching, setEnriching] = useState(false);
+  const enrich = async () => {
+    if (!book) return;
+    setEnriching(true);
+    try {
+      const r = await api.enrichBook(book.id);
+      if (r?.book) setBook(r.book);
+    } catch { /* ignore */ }
+    setEnriching(false);
+  };
+
   if (notFound) return <Centered>Книга не найдена</Centered>;
   if (!book) return <Centered>Загрузка…</Centered>;
 
@@ -103,6 +114,9 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
               )}
             </div>
             <ActionIcon name="pencil" title="Редактировать" />
+            <button onClick={enrich} disabled={enriching}>
+              <ActionIcon name="download" title={enriching ? "Загрузка…" : "Обновить обложку и описание"} />
+            </button>
             <button onClick={toggleArchive}>
               <ActionIcon name="archive" title={book.archived ? "Разархивировать" : "В архив"} active={book.archived} />
             </button>
