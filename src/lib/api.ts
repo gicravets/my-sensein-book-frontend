@@ -76,6 +76,8 @@ export const api = {
     return get<Page<Book>>(`/api/v1/books${qs ? `?${qs}` : ""}`);
   },
   book: (id: string) => get<Book>(`/api/v1/books/${id}`),
+  series: () =>
+    get<{ content: { name: string; bookCount: number }[]; totalElements: number }>(`/api/v1/series`),
   shelves: () => get<{ content: Shelf[]; totalElements: number }>(`/api/v1/shelves`),
   createShelf: (name: string) => send<Shelf>("POST", `/api/v1/shelves`, { name }),
   setShelfPublic: (id: string, isPublic: boolean) =>

@@ -31,9 +31,11 @@ export function SideNav({ open, onClose }: { open: boolean; onClose: () => void 
   const router = useRouter();
   const sp = useSearchParams();
   const [shelves, setShelves] = useState<Shelf[]>([]);
+  const [series, setSeries] = useState<{ name: string; bookCount: number }[]>([]);
 
   const loadShelves = () => api.shelves().then((r) => setShelves(r.content)).catch(() => {});
   useEffect(() => { loadShelves(); }, []);
+  useEffect(() => { api.series().then((r) => setSeries(r.content)).catch(() => {}); }, []);
 
   const createShelf = async () => {
     const name = window.prompt("Название полки");
@@ -119,6 +121,21 @@ export function SideNav({ open, onClose }: { open: boolean; onClose: () => void 
             />
           ))}
           <NavItem icon="plus" label="Create Magic Shelf" href="#" />
+        </Section>
+      )}
+
+      {series.length > 0 && (
+        <Section title="Серии">
+          {series.map((s) => (
+            <NavItem
+              key={s.name}
+              icon="book"
+              label={s.name}
+              href={`/?series=${encodeURIComponent(s.name)}`}
+              count={s.bookCount}
+              active={sp.get("series") === s.name}
+            />
+          ))}
         </Section>
       )}
       <div className="h-6" />
