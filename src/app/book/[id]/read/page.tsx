@@ -49,6 +49,47 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
   const [flip, setFlip] = useState<"next" | "prev" | null>(null);
   const flipping = useRef(false);
 
+  // read-aloud via Web Speech API (desktop-first; iOS Safari is limited)
+  const [tts, setTts] = useState<"idle" | "playing" | "paused">("idle");
+  const ttsOn = useRef(false);
+  const sectionText = () => {
+    try {
+      const cs = rendRef.current?.getContents?.() ?? [];
+      const arr = Array.isArray(cs) ? cs : [cs];
+      return arr.map((c: any) => c?.document?.body?.innerText ?? "").join(" ").trim();
+    } catch { return ""; }
+  };
+  const speakCurrent = useCallback(() => {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    const text = sectionText();
+    if (!text) { ttsOn.current = false; setTts("idle"); return; }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "ru-RU";
+    u.onend = () => {
+      if (!ttsOn.current) return;
+      const p = rendRef.current?.next?.();
+      if (p && typeof p.then === "function") {
+        p.then(() => setTimeout(() => { if (ttsOn.current) speakCurrent(); }, 350));
+      } else {
+        ttsOn.current = false;
+        setTts("idle");
+      }
+    };
+    synth.cancel();
+    synth.speak(u);
+    setTts("playing");
+  }, []);
+  const toggleTTS = useCallback(() => {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    if (tts === "playing") { synth.pause(); setTts("paused"); }
+    else if (tts === "paused") { synth.resume(); setTts("playing"); }
+    else { ttsOn.current = true; speakCurrent(); }
+  }, [tts, speakCurrent]);
+  const stopTTS = useCallback(() => { ttsOn.current = false; window.speechSynthesis?.cancel(); setTts("idle"); }, []);
+  useEffect(() => () => { window.speechSynthesis?.cancel(); }, []);
+
   // reader-prefs sync: server is the source of truth on load; changes PUT debounced.
   const prefsLoaded = useRef(false);
   const prefsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -297,6 +338,8 @@ export default function ReaderPage({ params }: { params: Promise<{ id: string }>
           <IconBtn onClick={() => { setSettings((v) => !v); }} title="Вид (Aa)" t={t}>Aa</IconBtn>
           <IconBtn onClick={addBookmark} title="Добавить закладку" t={t}>🔖</IconBtn>
           <IconBtn onClick={() => { setAnnots(true); loadAnnots(); }} title="Заметки и закладки" t={t}>📑</IconBtn>
+          <IconBtn onClick={toggleTTS} title="Читать вслух" t={t}>{tts === "playing" ? "⏸" : "🎧"}</IconBtn>
+          {tts !== "idle" && <IconBtn onClick={stopTTS} title="Стоп" t={t}>⏹</IconBtn>}
           <Link href={`/book/${id}`} title="К книге" className="grid h-10 w-10 place-items-center rounded-lg active:scale-90" style={{ color: t.fg, opacity: 0.75 }}>✕</Link>
         </header>
       )}
