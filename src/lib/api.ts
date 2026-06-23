@@ -134,9 +134,18 @@ export const api = {
   devices: () => get<{ content: { id: string; name: string; created: string }[]; totalElements: number }>(`/api/v1/devices`),
   deleteDevice: (id: string) => send<null>("DELETE", `/api/v1/devices/${id}`),
 
-  // device pairing (web side): create token + poll status
-  createPairing: () =>
-    send<{ token: string; expires: string; qr: { url: string; t: string } }>("POST", `/api/v1/auth/pair`),
+  // family users
+  users: () =>
+    get<{ content: { id: string; name: string; role: string }[]; totalElements: number }>(`/api/v1/users`),
+  createUser: (name: string) =>
+    send<{ id: string; name: string; role: string }>("POST", `/api/v1/users`, { name }),
+
+  // device pairing (web side): create token (optionally for a specific user) + poll status
+  createPairing: (userId?: string) =>
+    send<{ token: string; expires: string; qr: { url: string; t: string } }>(
+      "POST",
+      `/api/v1/auth/pair${userId ? `?userId=${encodeURIComponent(userId)}` : ""}`,
+    ),
   pairingStatus: (token: string) =>
     get<{ status: string; deviceName: string }>(`/api/v1/auth/pair/status?token=${encodeURIComponent(token)}`),
 
