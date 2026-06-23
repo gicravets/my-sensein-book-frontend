@@ -72,14 +72,30 @@ export function SideNav({ open, onClose }: { open: boolean; onClose: () => void 
 
       <Section title="Shelves">
         {normal.map((s) => (
-          <NavItem
-            key={s.id}
-            icon="bookmark"
-            label={s.name}
-            href={`/?shelf=${s.id}`}
-            count={s.bookCount}
-            active={activeShelf === s.id}
-          />
+          <div key={s.id} className="group relative">
+            <NavItem
+              icon="bookmark"
+              label={s.name}
+              href={`/?shelf=${s.id}`}
+              count={s.bookCount}
+              active={activeShelf === s.id}
+            />
+            <button
+              title={s.isPublic ? "Общая полка (видна семье)" : "Сделать общей для семьи"}
+              onClick={async (e) => {
+                e.preventDefault();
+                await api.setShelfPublic(s.id, !s.isPublic).catch(() => {});
+                loadShelves();
+              }}
+              className={`absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 ${
+                s.isPublic
+                  ? "text-emerald-400"
+                  : "text-cb-muted opacity-0 group-hover:opacity-100 hover:text-white"
+              }`}
+            >
+              <Icon name={s.isPublic ? "eye" : "eyeSlash"} size={14} />
+            </button>
+          </div>
         ))}
         <button
           onClick={createShelf}

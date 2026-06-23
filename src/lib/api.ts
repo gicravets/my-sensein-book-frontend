@@ -78,6 +78,8 @@ export const api = {
   book: (id: string) => get<Book>(`/api/v1/books/${id}`),
   shelves: () => get<{ content: Shelf[]; totalElements: number }>(`/api/v1/shelves`),
   createShelf: (name: string) => send<Shelf>("POST", `/api/v1/shelves`, { name }),
+  setShelfPublic: (id: string, isPublic: boolean) =>
+    send<Shelf>("PATCH", `/api/v1/shelves/${id}`, { isPublic }),
   deleteShelf: (id: string) => send<null>("DELETE", `/api/v1/shelves/${id}`),
   addToShelf: (shelfId: string, bookId: string) =>
     send<Book>("POST", `/api/v1/shelves/${shelfId}/books/${bookId}`),
